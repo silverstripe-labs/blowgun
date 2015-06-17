@@ -12,7 +12,6 @@ $autoload = array(
 );
 
 foreach ($autoload as $file) {
-	var_dump($file);
 	if (file_exists($file)) {
 		define('BLOWGUN_COMPOSER_INSTALL', $file);
 		break;
