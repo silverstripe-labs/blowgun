@@ -49,7 +49,6 @@ class Message {
 
 	/**
 	 * @param string $fromQueue
-	 * @internal param array $message
 	 */
 	public function __construct($fromQueue) {
 		$this->queue = $fromQueue;
