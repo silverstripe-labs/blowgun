@@ -83,8 +83,8 @@ class Message {
 
 		$this->receiptHandle = $rawMessage['ReceiptHandle'];
 
-		if(isset($body['responseQueue'])) {
-			$this->responseQueue = $body['responseQueue'];
+		if(isset($body['response_queue'])) {
+			$this->responseQueue = $body['response_queue'];
 		}
 	}
 
@@ -137,6 +137,10 @@ class Message {
 		return $this->responseQueue;
 	}
 
+	public function setResponseQueue($queueName) {
+		$this->responseQueue = $queueName;
+	}
+
 	/**
 	 * @return string
 	 */
@@ -159,11 +163,18 @@ class Message {
 		return $this->messageId;
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getRawBody() {
 		$rawBody = array();
 		$rawBody['action'] = $this->action;
-		$rawBody['arguments'] = $this->arguments;
-		// @todo(stig): add the respond to queue
+		if(count($this->arguments)) {
+			$rawBody['arguments'] = $this->arguments;
+		}
+		if($this->responseQueue) {
+			$rawBody['response_queue'] = $this->responseQueue;
+		}
 		return json_encode($rawBody, JSON_PRETTY_PRINT);
 	}
 
