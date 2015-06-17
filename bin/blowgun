@@ -6,14 +6,9 @@ set_time_limit(0);
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
-
-$builder = new DI\ContainerBuilder();
-$builder->addDefinitions(dirname(__DIR__ ). '/config.php');
-$container = $builder->build();
-
 $application = new Symfony\Component\Console\Application();
 
-$application->add($container->get('SilverStripe\\BlowGun\\Command\\ListenCommand'));
+$application->add(new SilverStripe\BlowGun\Command\ListenCommand());
 
 
 $application->run();
