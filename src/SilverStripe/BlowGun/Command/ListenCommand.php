@@ -1,4 +1,5 @@
-<?php namespace SilverStripe\BlowGun\Command;
+<?php
+namespace SilverStripe\BlowGun\Command;
 
 use Aws\S3\S3Client;
 use SilverStripe\BlowGun\Action\SSPakLoadAction;
@@ -13,8 +14,7 @@ class ListenCommand extends BaseCommand {
 	/**
 	 * Configures the current command.
 	 */
-	protected function configure()
-	{
+	protected function configure() {
 		parent::configure();
 		$this->setName('listen');
 		$this->addArgument('cluster');
@@ -28,8 +28,7 @@ class ListenCommand extends BaseCommand {
 	 * @param OutputInterface $output
 	 * @return bool|void
 	 */
-	protected function execute(InputInterface $input, OutputInterface $output)
-	{
+	protected function execute(InputInterface $input, OutputInterface $output) {
 		parent::execute($input, $output);
 
 		while(true) {
@@ -43,7 +42,6 @@ class ListenCommand extends BaseCommand {
 	 * @param OutputInterface $output
 	 */
 	protected function handle(InputInterface $input, OutputInterface $output) {
-
 		$handler = new SQSHandler($this->profile, $this->region);
 
 		$s3 = S3Client::factory([

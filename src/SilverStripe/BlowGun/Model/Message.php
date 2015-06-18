@@ -1,4 +1,5 @@
-<?php namespace SilverStripe\BlowGun\Model;
+<?php
+namespace SilverStripe\BlowGun\Model;
 
 class Message {
 

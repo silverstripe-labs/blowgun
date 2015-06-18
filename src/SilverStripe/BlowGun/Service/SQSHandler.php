@@ -1,4 +1,5 @@
-<?php namespace SilverStripe\BlowGun\Service;
+<?php
+namespace SilverStripe\BlowGun\Service;
 
 use Aws\CloudFront\Exception\Exception;
 use Aws\Sqs\SqsClient;

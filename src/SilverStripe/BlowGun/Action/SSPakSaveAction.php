@@ -1,4 +1,5 @@
-<?php namespace SilverStripe\BlowGun\Action;
+<?php
+namespace SilverStripe\BlowGun\Action;
 
 use Aws\S3\S3Client;
 use Monolog\Logger;
@@ -37,14 +38,23 @@ class SSPakSaveAction {
 	 * @param SQSHandler $mq
 	 * @param S3Client $s3
 	 * @param $siteRoot
+	 * @param $mode
 	 * @return bool
 	 */
-	public function exec(SQSHandler $mq, S3Client $s3, $siteRoot) {
-
-
+	public function exec(SQSHandler $mq, S3Client $s3, $siteRoot, $mode) {
 		$filePath = sys_get_temp_dir().'/'.uniqid('sandbox') . '.pak';
 		$siteRoot = escapeshellarg($siteRoot);
-		$process = new Process('sspak save '.$siteRoot.' '.$filePath);
+		$mode = escapeshellarg($this->message->getArgument('mode'));
+
+		$args = array('sspak', 'save', $siteroot, $filepath);
+		if($mode && $mode == 'db') {
+			$args[] = '--db';
+		} elseif($mode && $mode == 'assets') {
+			$args[] = '--assets';
+		}
+
+		$builder = new ProcessBuilder($args);
+		$process = $builder->getProcess();
 		$process->setTimeout(3600);
 
 		// @todo(increase visibility timeout of the message after every 1 minute?)
@@ -58,6 +68,10 @@ class SSPakSaveAction {
 				}
 			}
 		);
+
+		if(!$process->isSuccessful()) {
+			throw new \RuntimeException($process->getErrorOutput());
+		}
 
 		$keyName = 'cluster-stack-env/'.basename($filePath);
 		$bucket = $this->message->getArgument('bucket');

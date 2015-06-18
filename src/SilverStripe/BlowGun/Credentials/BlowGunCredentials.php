@@ -1,4 +1,5 @@
-<?php namespace SilverStripe\BlowGun\Credentials;
+<?php
+namespace SilverStripe\BlowGun\Credentials;
 
 use Aws\Common\Credentials\Credentials;
 

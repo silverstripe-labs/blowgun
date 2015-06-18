@@ -1,10 +1,11 @@
-<?php namespace SilverStripe\BlowGun\Action;
+<?php
+namespace SilverStripe\BlowGun\Action;
 
 use Aws\S3\S3Client;
 use Monolog\Logger;
 use SilverStripe\BlowGun\Model\Message;
 use SilverStripe\BlowGun\Service\SQSHandler;
-use Symfony\Component\Process\Process;
+use Symfony\Component\Process\ProcessBuilder;
 
 class SSPakLoadAction {
 
@@ -39,7 +40,6 @@ class SSPakLoadAction {
 	 * @return bool
 	 */
 	public function exec(SQSHandler $mq, S3Client $s3, $siteRoot) {
-
 		$ssPakUrl = $this->message->getArgument('sspak_url');
 		$filePath = sys_get_temp_dir().'/'.uniqid('sandbox') . '.sspak';
 
@@ -51,7 +51,8 @@ class SSPakLoadAction {
 
 		$this->logNotice('Downloaded '.$filePath);
 
-		$process = new Process('sspak load '.$filePath.' '.$siteRoot);
+		$builder = new ProcessBuilder(array('sspak', 'load', $filepath, $siteRoot));
+		$process = $builder->getProcess();
 		$process->setTimeout(3600);
 
 		// @todo(increase visibility timeout of the message after every 1 minute?)
@@ -65,6 +66,10 @@ class SSPakLoadAction {
 				}
 			}
 		);
+
+		if(!$process->isSuccessful()) {
+			throw new \RuntimeException($process->getErrorOutput());
+		}
 
 		$this->logNotice('Upload complete');
 
