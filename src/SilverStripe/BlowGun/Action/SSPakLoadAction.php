@@ -53,11 +53,20 @@ class SSPakLoadAction {
 		$this->logNotice('Downloaded '.$filePath);
 
 		// ProcessBuilder escapes the args for you!
-		$builder = new ProcessBuilder(array('sspak', 'load', $filePath, $siteRoot));
+//		$builder = new ProcessBuilder(array('sspak', 'load', $filePath, $siteRoot));
+		$builder = new ProcessBuilder(array('ls'));
 		$process = $builder->getProcess();
 
 		$process->setTimeout(3600);
 		$status = $this->execProcess($mq, $process);
+
+		if($this->message->getResponseQueue()) {
+			$responseMsg = new Message($this->message->getResponseQueue());
+			$responseMsg->setArgument('response_id', $this->message->getArgument('response_id'));
+			$responseMsg->setArgument('status', $status);
+			$mq->send($responseMsg);
+			$this->logNotice('Sent response message');
+		}
 
 		unlink($filePath);
 		$this->logNotice('Deleted file '.$filePath);
@@ -91,16 +100,15 @@ class SSPakLoadAction {
 	{
 		$this->logNotice('Running ' . $process->getCommandLine());
 		$process->start(function ($type, $buffer) {
-				foreach (explode(PHP_EOL, $buffer) as $line) {
-					if (!trim($line)) { continue; }
-					if ('err' === $type) {
-						$this->logError(trim($line));
-					} else {
-						$this->logNotice(trim($line));
-					}
+			foreach (explode(PHP_EOL, $buffer) as $line) {
+				if (!trim($line)) { continue; }
+				if ('err' === $type) {
+					$this->logError(trim($line));
+				} else {
+					$this->logNotice(trim($line));
 				}
 			}
-		);
+		});
 		$currentTime = time();
 		$timePassed = 0;
 		while ($process->isRunning()) {
