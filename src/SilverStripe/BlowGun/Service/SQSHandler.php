@@ -93,16 +93,13 @@ class SQSHandler {
 	 * @param Message $message
 	 */
 	public function send(Message $message) {
-		//@todo(stig): create queue if it doesn't exists
-
 		$queueURL = $this->getOrCreateQueueURL($message->getQueue());
 
 		$result = $this->client->sendMessage(array(
 			'QueueUrl' => $queueURL,
 			'MessageBody' => $message->getRawBody(),
-            'DataType' => 'string',
-        ));
-		var_dump('sent');
+			'DataType' => 'string',
+		));
 	}
 
 	/**

@@ -98,7 +98,6 @@ class SSPakSaveAction {
 		if($this->message->getResponseQueue()) {
 			$this->logNotice('need to respond to '.$this->message->getResponseQueue());
 			$responseMsg = new Message($this->message->getResponseQueue());
-			$responseMsg->setAction('sspak/load');
 			$responseMsg->setArgument('sspak_url', $signedUrl);
 			$mq->send($responseMsg);
 		}
