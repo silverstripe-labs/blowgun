@@ -121,8 +121,9 @@ class SQSHandler {
 	 * @param int $seconds
 	 */
 	public function addVisibilityTimeout(Message $message, $seconds) {
+		$queueURL = $this->getOrCreateQueueURL($message->getQueue());
 		$this->client->changeMessageVisibility([
-			'QueueUrl' => $message->getQueue(),
+			'QueueUrl' => $queueURL,
 			'ReceiptHandle' => $message->getReceiptHandle(),
 			'VisibilityTimeout' => $seconds
 		]);
