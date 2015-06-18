@@ -5,6 +5,7 @@ use Aws\S3\S3Client;
 use Monolog\Logger;
 use SilverStripe\BlowGun\Model\Message;
 use SilverStripe\BlowGun\Service\SQSHandler;
+use Symfony\Component\Process\Process;
 use Symfony\Component\Process\ProcessBuilder;
 
 class SSPakLoadAction {

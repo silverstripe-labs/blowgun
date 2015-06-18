@@ -7,6 +7,7 @@ use SilverStripe\BlowGun\Model\Message;
 use SilverStripe\BlowGun\Service\SQSHandler;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Process\ProcessBuilder;
 
 class SSPakSaveAction {
 
@@ -41,13 +42,13 @@ class SSPakSaveAction {
 	 * @param $mode
 	 * @return bool
 	 */
-	public function exec(SQSHandler $mq, S3Client $s3, $siteRoot, $mode) {
+	public function exec(SQSHandler $mq, S3Client $s3, $siteRoot) {
 		$filePath = sys_get_temp_dir().'/'.uniqid('sandbox') . '.pak';
 		$siteRoot = escapeshellarg($siteRoot);
 		$mode = escapeshellarg($this->message->getArgument('mode'));
 		$bucketFolder = escapeshellarg($this->message->getArgument('bucket-folder'));
 
-		$args = array('sspak', 'save', $siteroot, $filepath);
+		$args = array('sspak', 'save', $siteRoot, $filePath);
 		if($mode && $mode == 'db') {
 			$args[] = '--db';
 		} elseif($mode && $mode == 'assets') {
