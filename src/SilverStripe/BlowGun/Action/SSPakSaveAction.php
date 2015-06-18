@@ -45,6 +45,7 @@ class SSPakSaveAction {
 		$filePath = sys_get_temp_dir().'/'.uniqid('sandbox') . '.pak';
 		$siteRoot = escapeshellarg($siteRoot);
 		$mode = escapeshellarg($this->message->getArgument('mode'));
+		$bucketFolder = escapeshellarg($this->message->getArgument('bucket-folder'));
 
 		$args = array('sspak', 'save', $siteroot, $filepath);
 		if($mode && $mode == 'db') {
@@ -73,8 +74,8 @@ class SSPakSaveAction {
 			throw new \RuntimeException($process->getErrorOutput());
 		}
 
-		$keyName = 'cluster-stack-env/'.basename($filePath);
-		$bucket = $this->message->getArgument('bucket');
+		$keyName = $bucketFolder . '/' . basename($filePath);
+		$bucket = escapeshellarg($this->message->getArgument('bucket'));
 		$this->logNotice('Uploading to S3 bucket "'.$bucket.'" '.$keyName);
 		$result = $s3->putObject(array(
 			'Bucket'       => $bucket,
