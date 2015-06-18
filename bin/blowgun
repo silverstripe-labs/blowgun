@@ -11,8 +11,8 @@ $autoload = array(
 	__DIR__ . '/vendor/autoload.php'
 );
 
-foreach ($autoload as $file) {
-	if (file_exists($file)) {
+foreach($autoload as $file) {
+	if(file_exists($file)) {
 		define('BLOWGUN_COMPOSER_INSTALL', $file);
 		break;
 	}
@@ -29,12 +29,8 @@ if (!defined('BLOWGUN_COMPOSER_INSTALL')) {
 	die(1);
 }
 
-
 require_once BLOWGUN_COMPOSER_INSTALL;
 
 $application = new Symfony\Component\Console\Application();
-
 $application->add(new SilverStripe\BlowGun\Command\ListenCommand());
-
-
 $application->run();

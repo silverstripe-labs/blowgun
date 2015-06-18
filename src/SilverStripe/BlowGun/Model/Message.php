@@ -6,7 +6,7 @@ class Message {
 	/**
 	 * @var array
 	 */
-	protected $rawMessage = [];
+	protected $rawMessage = array();
 
 	/**
 	 * @var bool

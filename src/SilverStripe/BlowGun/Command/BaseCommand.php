@@ -1,4 +1,5 @@
-<?php namespace SilverStripe\BlowGun\Command;
+<?php
+namespace SilverStripe\BlowGun\Command;
 
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;

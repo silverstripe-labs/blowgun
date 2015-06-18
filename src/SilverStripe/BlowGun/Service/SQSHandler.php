@@ -77,10 +77,10 @@ class SQSHandler {
 		// @todo(stig): investigate the AttributeNames
 
 		if(!count($result['Messages'])) {
-			return [];
+			return array();
 		}
 
-		$messages = [];
+		$messages = array();
 		foreach($result['Messages'] as $message) {
 			$tmp = new Message($queueName);
 			$tmp->load($message);
