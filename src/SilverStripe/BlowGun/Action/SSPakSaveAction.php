@@ -44,7 +44,7 @@ class SSPakSaveAction {
 	 */
 	public function exec(SQSHandler $mq, S3Client $s3, $siteRoot) {
 		$filePath = sys_get_temp_dir().'/'.uniqid('sandbox') . '.pak';
-		$mode = escapeshellarg($this->message->getArgument('mode'));
+		$mode = $this->message->getArgument('mode');
 
 		$args = array('sspak', 'save', $siteRoot, $filePath);
 		if($mode && $mode == 'db') {
