@@ -45,7 +45,6 @@ class SSPakSaveAction {
 	public function exec(SQSHandler $mq, S3Client $s3, $siteRoot) {
 		$filePath = sys_get_temp_dir().'/'.uniqid('sandbox') . '.pak';
 		$mode = escapeshellarg($this->message->getArgument('mode'));
-		$bucketFolder = escapeshellarg($this->message->getArgument('bucket-folder'));
 
 		$args = array('sspak', 'save', $siteRoot, $filePath);
 		if($mode && $mode == 'db') {
@@ -75,7 +74,7 @@ class SSPakSaveAction {
 			throw new \RuntimeException($process->getErrorOutput());
 		}
 
-		$keyName = $bucketFolder . '/' . basename($filePath);
+		$keyName = $this->message->getArgument('bucket-folder') . '/' . basename($filePath);
 		$bucket = $this->message->getArgument('bucket');
 		$this->logNotice('Uploading to S3 bucket "'.$bucket.'" '.$keyName);
 		$result = $s3->putObject(array(
