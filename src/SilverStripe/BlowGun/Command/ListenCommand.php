@@ -44,24 +44,30 @@ class ListenCommand extends BaseCommand {
 	protected function handle(InputInterface $input, OutputInterface $output) {
 		$handler = new SQSHandler($this->profile, $this->region);
 
-		$s3 = S3Client::factory([
+		$s3 = S3Client::factory(array(
 			'profile' => $this->profile,
 			'region' => $this->region
-		]);
+		));
 
 		$siteRoot = trim($input->getArgument('site-root'));
 		if(!$siteRoot) {
-			$errorMsg = 'siteroot is empty';
+			$errorMsg = 'Missing site-root argument';
 			$this->log->addCritical($errorMsg);
-			throw new \RuntimeException('siteroot is empty');
+			throw new \RuntimeException($errorMsg);
 		}
 		if(!file_exists($siteRoot)) {
-			$errorMsg = 'site root '.$siteRoot.' doesn\'t exists.';
+			$errorMsg = sprintf('%s does not exist!', $siteRoot);
 			$this->log->addCritical($errorMsg);
 			throw new \RuntimeException($errorMsg);
 		}
 
-		$queueName = $input->getArgument('cluster').'-'.$input->getArgument('stack').'-'.$input->getArgument('env');
+		$queueName = sprintf(
+			'%s-%s-%s',
+			$input->getArgument('cluster'),
+			$input->getArgument('stack'),
+			$input->getArgument('env')
+		);
+
 		$messages = $handler->fetch($queueName);
 
 		foreach($messages as $message) {
