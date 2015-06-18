@@ -1,39 +1,13 @@
 <?php
 namespace SilverStripe\BlowGun\Action;
 
-use Aws\S3\S3Client;
-use Monolog\Logger;
 use SilverStripe\BlowGun\Model\Message;
 use SilverStripe\BlowGun\Service\SQSHandler;
-use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\ProcessBuilder;
+use Aws\S3\S3Client;
 
-class SSPakSaveAction {
-
-	/**
-	 * @var Message
-	 */
-	protected $message;
-
-	/**
-	 * @var Logger
-	 */
-	protected $log;
-
-	/**
-	 * @var InputInterface
-	 */
-	protected $input;
-
-	/**
-	 * @param Message $message
-	 * @param Logger $log
-	 */
-	public function __construct(Message $message, Logger $log) {
-		$this->message = $message;
-		$this->log = $log;
-	}
+class SSPakSaveAction extends BaseAction {
 
 	/**
 	 * @param SQSHandler $mq
@@ -57,22 +31,7 @@ class SSPakSaveAction {
 		$builder = new ProcessBuilder($args);
 		$process = $builder->getProcess();
 		$process->setTimeout(3600);
-
-		// @todo(increase visibility timeout of the message after every 1 minute?)
-		$this->logNotice('Running '.$process->getCommandLine());
-		$process->run(
-			function ($type, $buffer) {
-				if (Process::ERR === $type) {
-					$this->logError($buffer);
-				} else {
-					$this->logNotice($buffer);
-				}
-			}
-		);
-
-		if(!$process->isSuccessful()) {
-			throw new \RuntimeException($process->getErrorOutput());
-		}
+		$status = $this->execProcess($mq, $process);
 
 		$keyName = $this->message->getArgument('bucket-folder') . '/' . basename($filePath);
 		$bucket = $this->message->getArgument('bucket');
@@ -99,6 +58,7 @@ class SSPakSaveAction {
 			$responseMsg = new Message($this->message->getResponseQueue());
 			$responseMsg->setArgument('sspak_url', $signedUrl);
 			$responseMsg->setArgument('response_id', $this->message->getArgument('response_id'));
+			$responseMsg->setArgument('status', $status);
 			$mq->send($responseMsg);
 		}
 
@@ -107,22 +67,6 @@ class SSPakSaveAction {
 
 		$mq->delete($this->message);
 		$this->logNotice('Deleting message');
-	}
-
-	/**
-	 * @param string $message
-	 */
-	protected function logError($message) {
-		$context = array($this->message->getQueue(), $this->message->getMessageId());
-		$this->log->addError($message, $context);
-	}
-
-	/**
-	 * @param string $message
-	 */
-	protected function logNotice($message) {
-		$context = array($this->message->getQueue(), $this->message->getMessageId());
-		$this->log->addNotice($message, $context);
 	}
 
 }

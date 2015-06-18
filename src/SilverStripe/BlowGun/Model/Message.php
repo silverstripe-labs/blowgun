@@ -61,7 +61,7 @@ class Message {
 	public function load(array $rawMessage) {
 		$body = json_decode($rawMessage['Body'], true);
 		$error = $this->jsonErrorMessage();
-		if ($error) {
+		if($error) {
 			$this->valid = false;
 			$this->errorMessage = $error;
 			return;
@@ -106,8 +106,7 @@ class Message {
 	/**
 	 * @return boolean
 	 */
-	public function isValid()
-	{
+	public function isValid() {
 		return $this->valid;
 	}
 
@@ -124,7 +123,6 @@ class Message {
 	public function getAction() {
 		return $this->action;
 	}
-
 
 	public function setAction($action) {
 		$this->action = $action;
@@ -158,8 +156,7 @@ class Message {
 	/**
 	 * @return string
 	 */
-	public function getMessageId()
-	{
+	public function getMessageId() {
 		return $this->messageId;
 	}
 
@@ -186,7 +183,7 @@ class Message {
 	 */
 	protected function jsonErrorMessage() {
 		$error = json_last_error();
-		if (!$error) return null;
+		if(!$error) return null;
 
 		switch ($error) {
 			case JSON_ERROR_NONE:

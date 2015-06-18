@@ -59,12 +59,12 @@ class SQSHandler {
 	 * @return \SilverStripe\BlowGun\Model\Message[]
 	 */
 	public function fetch($queueName, $wait=2) {
-
 		$queueURL = $this->getOrCreateQueueURL($queueName);
 
-		if($wait>20) {
+		if($wait > 20) {
 			$wait = 20;
 		}
+
 		$result = $this->client->receiveMessage(array(
 			'QueueUrl' => $queueURL,
 			'MaxNumberOfMessages' => 1,
@@ -94,7 +94,6 @@ class SQSHandler {
 	 */
 	public function send(Message $message) {
 		$queueURL = $this->getOrCreateQueueURL($message->getQueue());
-
 		$result = $this->client->sendMessage(array(
 			'QueueUrl' => $queueURL,
 			'MessageBody' => $message->getRawBody(),
