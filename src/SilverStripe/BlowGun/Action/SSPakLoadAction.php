@@ -55,32 +55,15 @@ class SSPakLoadAction {
 		// ProcessBuilder escapes the args for you!
 		$builder = new ProcessBuilder(array('sspak', 'load', $filePath, $siteRoot));
 		$process = $builder->getProcess();
+
 		$process->setTimeout(3600);
-
-		// @todo(increase visibility timeout of the message after every 1 minute?)
-		$this->logNotice('Running '.$process->getCommandLine());
-		$process->run(
-			function ($type, $buffer) {
-				if (Process::ERR === $type) {
-					$this->logError('| '.$buffer);
-				} else {
-					$this->logNotice('| '.$buffer);
-				}
-			}
-		);
-
-		if(!$process->isSuccessful()) {
-			throw new \RuntimeException($process->getErrorOutput());
-		}
-
-		$this->logNotice('Upload complete');
+		$status = $this->execProcess($mq, $process);
 
 		unlink($filePath);
 		$this->logNotice('Deleted file '.$filePath);
 
 		$mq->delete($this->message);
-		$this->logNotice('Deleting message');
-
+		$this->logNotice('Deleted message');
 	}
 
 	/**
@@ -97,5 +80,42 @@ class SSPakLoadAction {
 	protected function logNotice($message) {
 		$context = array($this->message->getQueue(), $this->message->getMessageId());
 		$this->log->addNotice($message, $context);
+	}
+
+	/**
+	 * @param SQSHandler $mq
+	 * @param Process $process
+	 * @return mixed
+	 */
+	protected function execProcess(SQSHandler $mq, Process $process)
+	{
+		$this->logNotice('Running ' . $process->getCommandLine());
+		$process->start(function ($type, $buffer) {
+				foreach (explode(PHP_EOL, $buffer) as $line) {
+					if (!trim($line)) { continue; }
+					if ('err' === $type) {
+						$this->logError(trim($line));
+					} else {
+						$this->logNotice(trim($line));
+					}
+				}
+			}
+		);
+		$currentTime = time();
+		$timePassed = 0;
+		while ($process->isRunning()) {
+			$timePassed += time() - $currentTime;
+			$currentTime = time();
+			// Increase the visibility another 20 sec
+			if ($timePassed > 20) {
+				$this->logNotice('Waiting for command to finish');
+				$mq->addVisibilityTimeout($this->message, 20);
+				$timePassed = 0;
+			}
+			$process->checkTimeout();
+		}
+
+		$status = $process->isSuccessful();
+		return $status;
 	}
 }
