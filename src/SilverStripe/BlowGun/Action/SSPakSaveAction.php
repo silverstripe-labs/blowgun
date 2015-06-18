@@ -13,7 +13,6 @@ class SSPakSaveAction extends BaseAction {
 	 * @param SQSHandler $mq
 	 * @param S3Client $s3
 	 * @param $siteRoot
-	 * @param $mode
 	 * @return bool
 	 */
 	public function exec(SQSHandler $mq, S3Client $s3, $siteRoot) {
