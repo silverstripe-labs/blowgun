@@ -44,7 +44,6 @@ class SSPakSaveAction {
 	 */
 	public function exec(SQSHandler $mq, S3Client $s3, $siteRoot) {
 		$filePath = sys_get_temp_dir().'/'.uniqid('sandbox') . '.pak';
-		$siteRoot = escapeshellarg($siteRoot);
 		$mode = escapeshellarg($this->message->getArgument('mode'));
 		$bucketFolder = escapeshellarg($this->message->getArgument('bucket-folder'));
 
@@ -55,6 +54,7 @@ class SSPakSaveAction {
 			$args[] = '--assets';
 		}
 
+		// ProcessBuilder escapes the args for you!
 		$builder = new ProcessBuilder($args);
 		$process = $builder->getProcess();
 		$process->setTimeout(3600);
@@ -76,7 +76,7 @@ class SSPakSaveAction {
 		}
 
 		$keyName = $bucketFolder . '/' . basename($filePath);
-		$bucket = escapeshellarg($this->message->getArgument('bucket'));
+		$bucket = $this->message->getArgument('bucket');
 		$this->logNotice('Uploading to S3 bucket "'.$bucket.'" '.$keyName);
 		$result = $s3->putObject(array(
 			'Bucket'       => $bucket,
