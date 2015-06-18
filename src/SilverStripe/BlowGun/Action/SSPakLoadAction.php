@@ -53,8 +53,7 @@ class SSPakLoadAction {
 		$this->logNotice('Downloaded '.$filePath);
 
 		// ProcessBuilder escapes the args for you!
-//		$builder = new ProcessBuilder(array('sspak', 'load', $filePath, $siteRoot));
-		$builder = new ProcessBuilder(array('ls'));
+		$builder = new ProcessBuilder(array('sspak', 'load', $filePath, $siteRoot));
 		$process = $builder->getProcess();
 
 		$process->setTimeout(3600);
