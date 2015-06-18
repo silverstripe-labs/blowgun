@@ -11,6 +11,9 @@ class BlowGunCredentials extends Credentials {
 	 * @return string
 	 */
 	public static function defaultProfile() {
+		if(!self::checkForCredentialFile()) {
+			return '';
+		}
 		return self::getEnvVar(self::ENV_PROFILE) ?: 'default';
 	}
 
@@ -27,12 +30,9 @@ class BlowGunCredentials extends Credentials {
 		$configData = array();
 		$credentialData = array();
 
+		// try with the default profile
 		if (!$profile) {
 			$profile = self::defaultProfile();
-		}
-
-		if(!file_exists($credentialFile) && !file_exists($configFile)) {
-			throw new \RuntimeException("Invalid AWS credentials file(s).");
 		}
 
 		if(file_exists($credentialFile)) {
@@ -52,8 +52,24 @@ class BlowGunCredentials extends Credentials {
 				if(isset($data[$section]['region'])) return $data[$section]['region'];
 			}
 		}
+		return '';
+	}
 
-		throw new \RuntimeException("Invalid region set for profile: {$profile}.");
+	/**
+	 * @return bool
+	 */
+	protected static function checkForCredentialFile() {
+		$credentialFile = self::getHomeDir() . '/.aws/credentials';
+		$configFile = self::getHomeDir() . '/.aws/config';
+
+		if(file_exists($credentialFile)) {
+			return true;
+		}
+
+		if(file_exists($configFile)) {
+			return true;
+		}
+		return false;
 	}
 
 	/**

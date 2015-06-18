@@ -45,7 +45,7 @@ abstract class BaseCommand extends Command {
 	 */
 	protected function configure() {
 		$this
-			->addOption('profile', 'p', InputOption::VALUE_OPTIONAL, 'AWS profile', 'default')
+			->addOption('profile', 'p', InputOption::VALUE_OPTIONAL, 'AWS profile')
 			->addOption('region', 'r', InputOption::VALUE_REQUIRED, 'AWS Region')
 			->addOption('role-arn', null, InputOption::VALUE_REQUIRED, 'AWS role arn for temporary assuming a role');
 	}
@@ -63,7 +63,7 @@ abstract class BaseCommand extends Command {
 		);
 
 		// Load credentials
-		$this->checkCredentials($input);
+		$this->setCredentials($input);
 		$this->log = new Logger('blowgun');
 		$this->log->pushHandler(new SyslogHandler('blowgun'));
 		$this->log->pushHandler(new StreamHandler(STDOUT));
@@ -73,17 +73,28 @@ abstract class BaseCommand extends Command {
 	 * Check selected profile and region
 	 *
 	 * @param InputInterface $input
+	 * @throws \Exception
 	 */
-	public function checkCredentials(InputInterface $input) {
+	public function setCredentials(InputInterface $input)
+	{
 		// Skip if already set
-		if($this->profile && $this->region) return;
+		if ($this->profile && $this->region) {
+			return;
+		}
 
-		// Check profile name
-		$this->profile = $input->getOption('profile') ?: BlowGunCredentials::defaultProfile();
+		if ($input->getOption('profile')) {
+			$this->profile = $input->getOption('profile');
+		} elseif(BlowGunCredentials::defaultProfile()) {
+			$this->profile = BlowGunCredentials::defaultProfile();
+		}
 
 		// Check region
-		$this->region = $input->getOption('region') ?: BlowGunCredentials::defaultRegion($this->profile);
+		$this->region = BlowGunCredentials::defaultRegion($this->profile);
+		if ($input->getOption('region')) {
+			$this->region = $input->getOption('region');
+		}
 
+		// We always needs a region
 		if(!$this->region) {
 			throw new \RuntimeException("Missing value for <region> and could not be determined from profile");
 		}
