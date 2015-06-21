@@ -16,9 +16,6 @@ class SSPakSaveAction extends BaseAction {
 	 * @return bool
 	 */
 	public function exec(SQSHandler $mq, S3Client $s3, $siteRoot) {
-
-		var_dump($this->message);
-
 		$filePath = sys_get_temp_dir().'/'.uniqid('sandbox') . '.pak';
 		$mode = $this->message->getArgument('mode');
 
