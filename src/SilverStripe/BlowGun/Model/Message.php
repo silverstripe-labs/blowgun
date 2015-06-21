@@ -21,12 +21,17 @@ class Message {
 	/**
 	 * @var string
 	 */
-	protected $action = '';
+	protected $type = '';
 
 	/**
 	 * @var string
 	 */
-	protected $responseQueue;
+	protected $respondTo;
+
+	/**
+	 * @var string
+	 */
+	protected $responseId;
 
 	/**
 	 * @var string
@@ -44,6 +49,16 @@ class Message {
 	protected $arguments;
 
 	/**
+	 * @var bool
+	 */
+	protected $success;
+
+	/**
+	 * @var string
+	 */
+	protected $message;
+
+	/**
 	 * @var string
 	 */
 	private $queue;
@@ -59,6 +74,12 @@ class Message {
 	 * @param array $rawMessage
 	 */
 	public function load(array $rawMessage) {
+
+		// get all the SQS.Message properties
+		$this->messageId = $rawMessage['MessageId'];
+		$this->receiptHandle = $rawMessage['ReceiptHandle'];
+
+		// then parse the body into this object
 		$body = json_decode($rawMessage['Body'], true);
 		$error = $this->jsonErrorMessage();
 		if($error) {
@@ -67,25 +88,95 @@ class Message {
 			return;
 		}
 
-		$this->messageId = $rawMessage['MessageId'];
-
-		// do a simple parsing if we can handle this message
-		if(!(isset($body['action']) && is_string($body['action']))) {
+		// type is critical for a Message
+		if(!(isset($body['type']) && is_string($body['type']))) {
 			$this->valid = false;
-			$this->errorMessage = 'No \'action\' field in recieved message';
+			$this->errorMessage = 'No \'type\' field in recieved message';
 			return;
 		}
-		$this->action = $body['action'];
+		$this->type = $body['type'];
 
+		if (isset($body['success'])) {
+			$this->success = $body['success'];
+		}
+		if (isset($body['message'])) {
+			$this->message = $body['message'];
+		}
+		if (isset($body['error_message'])) {
+			$this->errorMessage = $body['error_message'];
+		}
+
+		// Chuck all the arguments into this class
 		if(isset($body['arguments']) && is_array($body['arguments'])) {
 			$this->arguments = $body['arguments'];
 		}
 
-		$this->receiptHandle = $rawMessage['ReceiptHandle'];
-
-		if(isset($body['response_queue'])) {
-			$this->responseQueue = $body['response_queue'];
+		if(isset($body['respond_to'])) {
+			$this->respondTo = $body['respond_to'];
 		}
+		if(isset($body['response_id'])) {
+			$this->responseId = $body['response_id'];
+		}
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function isValid() {
+		return $this->valid;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getQueue() {
+		return $this->queue;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getSuccess() {
+		return $this->success;
+	}
+
+	/**
+	 * @param bool $success
+	 * @return Message
+	 */
+	public function setSuccess($success) {
+		$this->success = $success;
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getMessage() {
+		return $this->message;
+	}
+
+	/**
+	 * @param string $message
+	 * @return Message
+	 */
+	public function setMessage($message) {
+		$this->message = $message;
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getErrorMessage() {
+		return $this->errorMessage;
+	}
+
+	/**
+	 * @param $msg
+	 */
+	public function setErrorMessage($msg) {
+		$this->errorMessage = $msg;
 	}
 
 	/**
@@ -99,51 +190,64 @@ class Message {
 		return null;
 	}
 
+	/**
+	 * @param $name
+	 * @param $value
+	 * @return Message
+	 */
 	public function setArgument($name, $value) {
 		$this->arguments[$name] = $value;
-	}
-
-	/**
-	 * @return boolean
-	 */
-	public function isValid() {
-		return $this->valid;
+		return $this;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getErrorMessage() {
-		return $this->errorMessage;
+	public function getType() {
+		return $this->type;
+	}
+
+	/**
+	 * @param $type
+	 * @return Message
+	 */
+	public function setType($type) {
+		$this->type = $type;
+		return $this;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getAction() {
-		return $this->action;
+	public function getRespondTo() {
+		return $this->respondTo;
 	}
 
-	public function setAction($action) {
-		$this->action = $action;
+	/**
+	 * @param string $queueName
+	 * @param string $id
+	 * @return Message
+	 */
+	public function setRespondTo($queueName, $id) {
+		$this->respondTo = $queueName;
+		$this->responseId = $id;
+		return $this;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getResponseQueue() {
-		return $this->responseQueue;
-	}
-
-	public function setResponseQueue($queueName) {
-		$this->responseQueue = $queueName;
+	public function getResponseId() {
+		return $this->responseId;
 	}
 
 	/**
-	 * @return string
+	 * @param string $responseId
+	 * @return Message
 	 */
-	public function getQueue() {
-		return $this->queue;
+	public function setResponseId($responseId) {
+		$this->responseId = $responseId;
+		return $this;
 	}
 
 	/**
@@ -163,14 +267,26 @@ class Message {
 	/**
 	 * @return string
 	 */
-	public function getRawBody() {
+	public function getAsJson() {
 		$rawBody = array();
-		$rawBody['action'] = $this->action;
+		$rawBody['type'] = $this->type;
 		if(count($this->arguments)) {
 			$rawBody['arguments'] = $this->arguments;
 		}
-		if($this->responseQueue) {
-			$rawBody['response_queue'] = $this->responseQueue;
+		if($this->respondTo) {
+			$rawBody['respond_to'] = $this->respondTo;
+		}
+		if (!empty($this->responseId)) {
+			$rawBody['response_id'] = $this->responseId;
+		}
+		if (!empty($this->success)) {
+			$rawBody['success'] = $this->success;
+		}
+		if (!empty($this->message)) {
+			$rawBody['message'] = $this->message;
+		}
+		if (!empty($this->errorMessage)) {
+			$rawBody['error_message'] = $this->errorMessage;
 		}
 		return json_encode($rawBody, JSON_PRETTY_PRINT);
 	}

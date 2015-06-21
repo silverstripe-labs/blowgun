@@ -16,6 +16,9 @@ class SSPakSaveAction extends BaseAction {
 	 * @return bool
 	 */
 	public function exec(SQSHandler $mq, S3Client $s3, $siteRoot) {
+
+		var_dump($this->message);
+
 		$filePath = sys_get_temp_dir().'/'.uniqid('sandbox') . '.pak';
 		$mode = $this->message->getArgument('mode');
 
@@ -34,30 +37,33 @@ class SSPakSaveAction extends BaseAction {
 
 		$keyName = $this->message->getArgument('bucket-folder') . '/' . basename($filePath);
 		$bucket = $this->message->getArgument('bucket');
-		$this->logNotice('Uploading to S3 bucket "'.$bucket.'" '.$keyName);
-		$result = $s3->putObject(array(
-			'Bucket'       => $bucket,
-			'Key'          => $keyName,
-			'SourceFile'   => $filePath,
-			//@todo(stig) any other options?
-			'StorageClass' => 'REDUCED_REDUNDANCY',
-		));
 
-		if(!isset($result['ObjectURL'])) {
-			$this->log->addError('Upload failed');
-			return false;
+		$pakLocation = sprintf('s3://%s/%s',$bucket, $keyName);
+
+		$this->logNotice(sprintf('Uploading to "%s"', $pakLocation));
+
+		try {
+			$result = $s3->putObject(array(
+				'Bucket'       => $bucket,
+				'Key'          => $keyName,
+				'SourceFile'   => $filePath,
+				//@todo(stig) any other options?
+				'StorageClass' => 'REDUCED_REDUNDANCY',
+			));
+			$this->logNotice('Upload complete');
+			$statusMsg = '';
+		} catch(\Exception $e) {
+			$this->logError('Upload failed: ' . $e->getMessage());
+			$status = false;
+			$statusMsg = $e->getMessage();
 		}
 
-		$signedUrl = $s3->getObjectUrl($bucket, $keyName, '+10 minutes');
-
-		$this->logNotice('Upload complete');
-
-		if($this->message->getResponseQueue()) {
-			$this->logNotice('need to respond to '.$this->message->getResponseQueue());
-			$responseMsg = new Message($this->message->getResponseQueue());
-			$responseMsg->setArgument('sspak_url', $signedUrl);
-			$responseMsg->setArgument('response_id', $this->message->getArgument('response_id'));
-			$responseMsg->setArgument('status', $status);
+		if($this->message->getRespondTo()) {
+			$responseMsg = new Message($this->message->getRespondTo());
+			$responseMsg->setType('status');
+			$responseMsg->setArgument('sspak_url', $pakLocation);
+			$responseMsg->setResponseId($this->message->getResponseId());
+			$responseMsg->setSuccess($status);
 			$mq->send($responseMsg);
 		}
 

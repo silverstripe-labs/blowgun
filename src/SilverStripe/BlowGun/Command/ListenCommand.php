@@ -78,17 +78,17 @@ class ListenCommand extends BaseCommand {
 			}
 
 			try {
-				switch($message->getAction()) {
-					case 'sspak/save':
+				switch($message->getType()) {
+					case 'snapshot_store':
 						$command = new SSPakSaveAction($message, $this->log);
 						$command->exec($handler, $s3, $siteRoot);
 						break;
-					case 'sspak/load':
+					case 'snapshot_restore':
 						$command = new SSPakLoadAction($message, $this->log);
 						$command->exec($handler, $s3, $siteRoot);
 						break;
 					default:
-						$this->log->addInfo("Can't handle action '".$message->getAction()."' in message ", array($queueName, $message->getMessageId()));
+						$this->log->addInfo("Can't handle action '".$message->getType()."' in message ", array($queueName, $message->getMessageId()));
 						continue;
 						break;
 				}

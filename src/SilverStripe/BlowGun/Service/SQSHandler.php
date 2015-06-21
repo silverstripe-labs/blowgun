@@ -94,9 +94,9 @@ class SQSHandler {
 	 */
 	public function send(Message $message) {
 		$queueURL = $this->getOrCreateQueueURL($message->getQueue());
-		$result = $this->client->sendMessage(array(
+		$this->client->sendMessage(array(
 			'QueueUrl' => $queueURL,
-			'MessageBody' => $message->getRawBody(),
+			'MessageBody' => $message->getAsJson(),
 			'DataType' => 'string',
 		));
 	}

@@ -33,10 +33,16 @@ class SSPakLoadAction extends BaseAction {
 		$process->setTimeout(3600);
 		$status = $this->execProcess($mq, $process);
 
-		if($this->message->getResponseQueue()) {
-			$responseMsg = new Message($this->message->getResponseQueue());
-			$responseMsg->setArgument('response_id', $this->message->getArgument('response_id'));
-			$responseMsg->setArgument('status', $status);
+		if($this->message->getRespondTo()) {
+			$responseMsg = new Message($this->message->getRespondTo());
+			$responseMsg->setResponseId($this->message->getResponseId());
+			if($process->getErrorOutput()) {
+				$responseMsg->setErrorMessage($process->getErrorOutput());
+			}
+			if($process->getOutput()) {
+				$responseMsg->setMessage($process->getOutput());
+			}
+			$responseMsg->setSuccess($status);
 			$mq->send($responseMsg);
 			$this->logNotice('Sent response message');
 		}
