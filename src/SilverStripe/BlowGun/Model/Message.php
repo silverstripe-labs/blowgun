@@ -120,6 +120,10 @@ class Message {
 	}
 
 	/**
+	 * @todo: It would be nice if this is actually checking the values instead
+	 * of relying on a property
+	 *
+	 *
 	 * @return boolean
 	 */
 	public function isValid() {
@@ -188,6 +192,13 @@ class Message {
 			return $this->arguments[$name];
 		}
 		return null;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getArguments() {
+		return $this->arguments;
 	}
 
 	/**

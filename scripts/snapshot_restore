@@ -1,0 +1,11 @@
+#!/usr/bin/env bash -e
+
+
+# Ensure this sucker is gone
+rm -rf /tmp/temp.pak
+curl --silent --output /tmp/temp.pak ${sspak_url}
+
+mv "${webroot}/assets" /tmp/assets.backup
+sspak load /tmp/temp.pak "${webroot}"
+rm -rf /tmp/temp.pak
+rm -rf /tmp/assets.backup

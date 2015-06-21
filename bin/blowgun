@@ -17,8 +17,9 @@ foreach($autoload as $file) {
 		break;
 	}
 }
-
 unset($file);
+
+define('BASE_DIR', dirname(__DIR__));
 
 if (!defined('BLOWGUN_COMPOSER_INSTALL')) {
 	fwrite(STDERR,

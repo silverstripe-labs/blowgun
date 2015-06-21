@@ -1,0 +1,11 @@
+#!/usr/bin/env bash -e
+
+# Ensure this sucker is gone
+rm -rf /tmp/temp.pak
+sspak save $webroot /tmp/temp.pak
+
+aws s3 --only-show-errors cp /tmp/temp.pak s3://${bucket}/${bucket-folder}/temp.pak
+
+rm -rf /tmp/temp.pak
+
+echo "sspak_url=s3://${bucket}/${bucket-folder}/temp.pak"
