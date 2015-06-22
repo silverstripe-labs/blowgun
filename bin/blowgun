@@ -19,8 +19,6 @@ foreach($autoload as $file) {
 }
 unset($file);
 
-define('BASE_DIR', dirname(__DIR__));
-
 if (!defined('BLOWGUN_COMPOSER_INSTALL')) {
 	fwrite(STDERR,
 		'You need to set up the project dependencies using the following commands:' . PHP_EOL .

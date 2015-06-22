@@ -2,8 +2,6 @@
 namespace SilverStripe\BlowGun\Command;
 
 use Aws\S3\S3Client;
-use SilverStripe\BlowGun\Action\SSPakLoadAction;
-use SilverStripe\BlowGun\Action\SSPakSaveAction;
 use SilverStripe\BlowGun\Model\Message;
 use SilverStripe\BlowGun\Service\MessageQueue;
 use SilverStripe\BlowGun\Service\SQSHandler;
@@ -24,6 +22,7 @@ class ListenCommand extends BaseCommand {
 		$this->addArgument('stack');
 		$this->addArgument('env');
 		$this->addArgument('site-root');
+		$this->addArgument('script-dir');
 	}
 
 	/**
@@ -52,17 +51,9 @@ class ListenCommand extends BaseCommand {
 			'region' => $this->region
 		));
 
-		$siteRoot = trim($input->getArgument('site-root'));
-		if(!$siteRoot) {
-			$errorMsg = 'Missing site-root argument';
-			$this->log->addCritical($errorMsg);
-			throw new \RuntimeException($errorMsg);
-		}
-		if(!file_exists($siteRoot)) {
-			$errorMsg = sprintf('%s does not exist!', $siteRoot);
-			$this->log->addCritical($errorMsg);
-			throw new \RuntimeException($errorMsg);
-		}
+
+		$siteRoot = $this->validateDirectory($input, 'site-root');
+		$scriptDir = $this->validateDirectory($input, 'script-dir');
 
 		$queueName = sprintf(
 			'%s-%s-%s',
@@ -91,7 +82,7 @@ class ListenCommand extends BaseCommand {
 				continue;
 			}
 
-			$scriptPath = sprintf("%s/scripts/%s", BASE_DIR, $type);
+			$scriptPath = sprintf("%s/%s", realpath($scriptDir), basename($type));
 			// ProcessBuilder escapes the args for you!
 			$builder = new ProcessBuilder(array($scriptPath));
 			// Inject the arguments into the ENV for the script, it's the easiest
@@ -189,10 +180,38 @@ class ListenCommand extends BaseCommand {
 	}
 
 	/**
-	 * @param $string
+	 * @param string $string
 	 * @param Message|string $message
 	 */
 	protected function logNotice($string, Message $message) {
 		$this->log->addNotice($string, [$message->getQueue(), $message->getMessageId()]);
+	}
+
+	/**
+	 * @param InputInterface $input
+	 * @param string $argumentName
+	 * @return string
+	 */
+	protected function validateDirectory(InputInterface $input, $argumentName) {
+		$dirName = trim($input->getArgument($argumentName));
+		if(!$dirName) {
+			$errorMsg = sprintf("Missing '%s' argument!", $argumentName);
+			$this->log->addCritical($errorMsg);
+			throw new \RuntimeException($errorMsg);
+		}
+
+		if(!file_exists($dirName)) {
+			$errorMsg = sprintf("Directory '%s' does not exist!", $dirName);
+			$this->log->addCritical($errorMsg);
+			throw new \RuntimeException($errorMsg);
+		}
+
+		if(!is_dir($dirName)) {
+			$errorMsg = sprintf("'%s' isn't a directory!", $argumentName);
+			$this->log->addCritical($errorMsg);
+			throw new \RuntimeException($errorMsg);
+		}
+
+		return $dirName;
 	}
 }
