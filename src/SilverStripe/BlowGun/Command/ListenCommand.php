@@ -31,6 +31,7 @@ class ListenCommand extends BaseCommand {
 		$this->addArgument('env');
 		$this->addArgument('site-root');
 		$this->addArgument('script-dir');
+		// @todo(stig): add a verbose flag
 	}
 
 	/**
