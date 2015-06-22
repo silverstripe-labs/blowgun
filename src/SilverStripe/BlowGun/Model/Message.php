@@ -281,6 +281,8 @@ class Message {
 	public function getAsJson() {
 		$rawBody = array();
 		$rawBody['type'] = $this->type;
+		$rawBody['success'] = $this->success;
+
 		if(count($this->arguments)) {
 			$rawBody['arguments'] = $this->arguments;
 		}
@@ -290,9 +292,7 @@ class Message {
 		if (!empty($this->responseId)) {
 			$rawBody['response_id'] = $this->responseId;
 		}
-		if (!empty($this->success)) {
-			$rawBody['success'] = $this->success;
-		}
+
 		if (!empty($this->message)) {
 			$rawBody['message'] = $this->message;
 		}

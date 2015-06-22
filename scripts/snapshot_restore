@@ -1,11 +1,16 @@
 #!/usr/bin/env bash -e
 
+if [ -z "$mode" ]; then
+	mode="all"
+fi
 
-# Ensure this sucker is gone
 rm -rf /tmp/temp.pak
+
+echo "Fetching snapshot"
 curl --silent --output /tmp/temp.pak ${sspak_url}
 
-mv "${webroot}/assets" /tmp/assets.backup
-sspak load /tmp/temp.pak "${webroot}"
+echo "Running sspak load with mode '${mode}'"
+sspak load /tmp/temp.pak "${webroot}" --${mode}
+
+echo "Cleaning up"
 rm -rf /tmp/temp.pak
-rm -rf /tmp/assets.backup

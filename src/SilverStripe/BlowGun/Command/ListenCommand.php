@@ -1,15 +1,23 @@
 <?php
 namespace SilverStripe\BlowGun\Command;
 
-use Aws\S3\S3Client;
 use SilverStripe\BlowGun\Model\Message;
-use SilverStripe\BlowGun\Service\MessageQueue;
 use SilverStripe\BlowGun\Service\SQSHandler;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\ProcessBuilder;
 
+/**
+ * Class ListenCommand
+ *
+ * WARNING:
+ *
+ * Since this command will be running as a daemon, be very careful what state is
+ * added to $this and other classes. Preferable unset and re-instantiate objects
+ *
+ * @package SilverStripe\BlowGun\Command
+ */
 class ListenCommand extends BaseCommand {
 
 	/**
@@ -33,6 +41,7 @@ class ListenCommand extends BaseCommand {
 	protected function execute(InputInterface $input, OutputInterface $output) {
 		parent::execute($input, $output);
 
+		// sweet never ending loop batman!
 		while(true) {
 			$this->handle($input, $output);
 			sleep(1);
@@ -45,12 +54,6 @@ class ListenCommand extends BaseCommand {
 	 */
 	protected function handle(InputInterface $input, OutputInterface $output) {
 		$handler = new SQSHandler($this->profile, $this->region);
-
-		$s3 = S3Client::factory(array(
-			'profile' => $this->profile,
-			'region' => $this->region
-		));
-
 
 		$siteRoot = $this->validateDirectory($input, 'site-root');
 		$scriptDir = $this->validateDirectory($input, 'script-dir');
@@ -100,20 +103,29 @@ class ListenCommand extends BaseCommand {
 			// the script.
 			$outputData = [];
 			try {
-				$outputData = $this->execProcess($handler, $message, $process);
+				$cmdOutput = $this->execProcess($handler, $message, $process);
 			// Capture timeout errors and other exceptions
 			} catch(\Exception $e) {
+				$outputData['stderr'][] = $message;
 				$this->logError($e->getMessage(), $message);
 			}
 
 			if($message->getRespondTo()) {
 				$responseMsg = new Message($message->getRespondTo());
 				$responseMsg->setType('status');
-				foreach($outputData as $key => $value) {
-					$responseMsg->setArgument($key, $value);
+				if(!empty($cmdOutput['data'])) {
+					foreach($cmdOutput['data'] as $key => $value) {
+						$responseMsg->setArgument($key, $value);
+					}
 				}
 				$responseMsg->setResponseId($message->getResponseId());
 				$responseMsg->setSuccess($process->isSuccessful());
+				if(!empty($cmdOutput['stderr'])) {
+					$responseMsg->setErrorMessage(implode(PHP_EOL, $cmdOutput['stderr']));
+				}
+				if(!empty($cmdOutput['stdout'])) {
+					$responseMsg->setMessage(implode(PHP_EOL, $cmdOutput['stdout']));
+				}
 				$handler->send($responseMsg);
 			}
 
@@ -134,13 +146,19 @@ class ListenCommand extends BaseCommand {
 		$outputData = [];
 
 		// Run the command and capture data from stdout
-		$process->start(function($type, $buffer) use(&$outputData, $message) {
+		$stdErr = [];
+		$stdOut = [];
+		$process->start(function($type, $buffer) use(&$outputData, &$stdErr, &$stdOut, $message) {
 			foreach(explode(PHP_EOL, $buffer) as $line) {
-				if(!trim($line)) {
+				$line = trim($line);
+				if(!$line) {
 					continue;
 				}
 				if('err' === $type) {
-					$this->logError(trim($line), $message);
+					$this->logError($line, $message);
+					// save the errors so that they can be included in the
+					// message errorMessage
+					$stdErr[] = $line;
 					continue;
 				}
 				// this capture data that the script outputs
@@ -148,7 +166,9 @@ class ListenCommand extends BaseCommand {
 					list($key, $value) = explode('=', $line);
 					$outputData[trim($key)] = trim($value);
 				}
-				$this->logNotice(trim($line), $message);
+
+				$stdOut[] = $line;
+				$this->logNotice($line, $message);
 			}
 		});
 
@@ -168,7 +188,11 @@ class ListenCommand extends BaseCommand {
 			$process->checkTimeout();
 		}
 
-		return $outputData;
+		return [
+			'data' => $outputData,
+			'stdout' => $stdOut,
+			'stderr' => $stdErr
+		];
 	}
 
 	/**
