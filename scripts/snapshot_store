@@ -1,14 +1,18 @@
 #!/bin/bash -e
-
 if [ -z "$mode" ]; then
 	mode="all"
+fi
+
+if [ -z "$webroot" ]; then
+	echo "\$webroot not defined"
+	exit 2
 fi
 
 DATETIME=`date +"%Y-%d-%d_%H-%M-%S"`
 
 rm -rf /tmp/temp.pak
 echo "Running sspak save with mode '${mode}'"
-/usr/local/bin/sspak save $webroot /tmp/temp.pak --${mode}
+/usr/local/bin/sspak save ${webroot} /tmp/temp.pak --${mode}
 
 echo "Saving snapshot"
 /usr/local/bin/aws s3 --only-show-errors cp /tmp/temp.pak "s3://${bucket}/${bucket_folder}/${DATETIME}.pak"

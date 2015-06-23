@@ -1,5 +1,4 @@
 #!/bin/bash -e
-
 if [ -z "$mode" ]; then
 	mode="all"
 fi
@@ -15,26 +14,6 @@ echo "Fetching snapshot"
 
 echo "Running sspak load with mode '${mode}'"
 /usr/local/bin/sspak load /tmp/temp.pak "${webroot}" --drop-db --${mode}
-
-
-# Capistrano code
-#if exists?(:webserver_user)
-#	# Make sure asset directory exists.
-#	run "if [ ! -e #{shared_path}/assets ]; then mkdir #{shared_path}/assets; fi", params
-#	# Webserver-owned files, just fix permissions.
-#	run "sudo -u #{webserver_user} find #{shared_path}/assets -type d -user #{webserver_user} -exec chmod 2755 {} \\;", params
-#	run "sudo -u #{webserver_user} find #{shared_path}/assets -type f -user #{webserver_user} -exec chmod 0644 {} +", params
-#	# Ssh-user owned files, must be writable by the webserver user.
-#	# We cannot give files to webserver_user without being root, so we set the group write permission instead.
-#	run "find #{shared_path}/assets -maxdepth 1 -type d -user `whoami` -exec chmod 0775 {} \\;", params
-#	run "find #{shared_path}/assets -mindepth 1 -type d -user `whoami` -exec chmod 2775 {} \\;", params
-#	run "find #{shared_path}/assets -type f -user `whoami` -exec chmod 0664 {} +", params
-#else
-#	run "if [ ! -e #{shared_path}/assets ]; then mkdir #{shared_path}/assets; fi", params
-#	run "find #{shared_path}/assets -type d -exec chmod 2755 {} \\;", params
-#	run "find #{shared_path}/assets -type f -exec chmod 0644 {} +", params
-#end
-
 
 echo "Cleaning up"
 rm -rf /tmp/temp.pak
