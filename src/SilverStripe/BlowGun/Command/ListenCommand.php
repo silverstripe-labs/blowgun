@@ -55,7 +55,7 @@ class ListenCommand extends BaseCommand {
 
 		parent::execute($input, $output);
 
-		$this->handler = new SQSHandler($this->profile, $this->region);
+		$this->handler = new SQSHandler($this->profile, $this->region, $this->log);
 		$this->siteRoot = $this->getDirectoryFromInput($input, 'site-root');
 		$this->scriptDir = $this->getDirectoryFromInput($input, 'script-dir');
 		$queueName = $this->getQueueNameFromInput($input);
@@ -122,10 +122,6 @@ class ListenCommand extends BaseCommand {
 	protected function handleMessage(Message $message) {
 
 		$this->logNotice('Received message', $message);
-		if(!$message->isValid()) {
-			$this->logError($message->getErrorMessage(), $message);
-			return;
-		}
 
 		// At this point there is no action a blowgun worker can do with
 		// a status oldMessage, so just log it and delete the oldMessage

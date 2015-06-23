@@ -1,0 +1,11 @@
+{
+	"type": "snapshot_store",
+	"success": null,
+	"arguments": {
+		"mode": null,
+		"bucket": "silverstripe-snapshots",
+		"bucket_folder": "cluster-stack-sean"
+	},
+	"respond_to": "cluster-stack-sean-done",
+	"response_id": "5588e20d53cbc9.58799949"
+}

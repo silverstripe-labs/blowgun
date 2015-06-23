@@ -1,6 +1,7 @@
 <?php
 namespace SilverStripe\BlowGun\Model;
 
+use SilverStripe\BlowGun\Exceptions\MessageLoadingException;
 use SilverStripe\BlowGun\Service\SQSHandler;
 
 class Message {
@@ -9,11 +10,6 @@ class Message {
 	 * @var array
 	 */
 	protected $rawMessage = [];
-
-	/**
-	 * @var bool
-	 */
-	protected $valid = true;
 
 	/**
 	 * @var string
@@ -82,6 +78,8 @@ class Message {
 
 	/**
 	 * @param array $rawMessage
+	 *
+	 * @throws MessageLoadingException
 	 */
 	public function load(array $rawMessage) {
 
@@ -93,16 +91,12 @@ class Message {
 		$body = json_decode($rawMessage['Body'], true);
 		$error = $this->jsonErrorMessage();
 		if($error) {
-			$this->valid = false;
-			$this->errorMessage = $error;
-			return;
+			throw new MessageLoadingException($error);
 		}
 
 		// type is critical for a Message
 		if(!(isset($body['type']) && is_string($body['type']))) {
-			$this->valid = false;
-			$this->errorMessage = 'No \'type\' field in recieved message';
-			return;
+			throw new MessageLoadingException('No \'type\' field in recieved message');
 		}
 		$this->type = $body['type'];
 
@@ -133,7 +127,6 @@ class Message {
 	 * @param $seconds
 	 */
 	public function increaseVisibility($seconds) {
-
 		$this->handler->addVisibilityTimeout($this, $seconds);
 	}
 
@@ -141,7 +134,6 @@ class Message {
 	 *
 	 */
 	public function send() {
-
 		$this->handler->send($this);
 	}
 
@@ -149,27 +141,13 @@ class Message {
 	 *
 	 */
 	public function deleteFromQueue() {
-
 		$this->handler->delete($this);
-	}
-
-	/**
-	 * @todo: It would be nice if this is actually checking the values instead
-	 * of relying on a property
-	 *
-	 *
-	 * @return boolean
-	 */
-	public function isValid() {
-
-		return $this->valid;
 	}
 
 	/**
 	 * @return string
 	 */
 	public function getQueue() {
-
 		return $this->queue;
 	}
 
@@ -177,7 +155,6 @@ class Message {
 	 * @return bool
 	 */
 	public function getSuccess() {
-
 		return $this->success;
 	}
 
@@ -187,7 +164,6 @@ class Message {
 	 * @return Message
 	 */
 	public function setSuccess($success) {
-
 		$this->success = $success;
 		return $this;
 	}
@@ -206,7 +182,6 @@ class Message {
 	 * @return Message
 	 */
 	public function setMessage($message) {
-
 		$this->message = $message;
 		return $this;
 	}
@@ -215,7 +190,6 @@ class Message {
 	 * @return string
 	 */
 	public function getErrorMessage() {
-
 		return $this->errorMessage;
 	}
 
@@ -223,7 +197,6 @@ class Message {
 	 * @param $msg
 	 */
 	public function setErrorMessage($msg) {
-
 		$this->errorMessage = $msg;
 	}
 
@@ -233,7 +206,6 @@ class Message {
 	 * @return string|null
 	 */
 	public function getArgument($name) {
-
 		if(isset($this->arguments[$name])) {
 			return $this->arguments[$name];
 		}
@@ -244,7 +216,6 @@ class Message {
 	 * @return array
 	 */
 	public function getArguments() {
-
 		return $this->arguments;
 	}
 
@@ -255,7 +226,6 @@ class Message {
 	 * @return Message
 	 */
 	public function setArgument($name, $value) {
-
 		$this->arguments[$name] = $value;
 		return $this;
 	}
@@ -264,7 +234,6 @@ class Message {
 	 * @return string
 	 */
 	public function getType() {
-
 		return $this->type;
 	}
 
@@ -274,7 +243,6 @@ class Message {
 	 * @return Message
 	 */
 	public function setType($type) {
-
 		$this->type = $type;
 		return $this;
 	}
@@ -283,7 +251,6 @@ class Message {
 	 * @return string
 	 */
 	public function getRespondTo() {
-
 		return $this->respondTo;
 	}
 
@@ -294,7 +261,6 @@ class Message {
 	 * @return Message
 	 */
 	public function setRespondTo($queueName, $id) {
-
 		$this->respondTo = $queueName;
 		$this->responseId = $id;
 		return $this;
@@ -304,7 +270,6 @@ class Message {
 	 * @return string
 	 */
 	public function getResponseId() {
-
 		return $this->responseId;
 	}
 
@@ -314,7 +279,6 @@ class Message {
 	 * @return Message
 	 */
 	public function setResponseId($responseId) {
-
 		$this->responseId = $responseId;
 		return $this;
 	}
@@ -323,7 +287,6 @@ class Message {
 	 * @return string
 	 */
 	public function getReceiptHandle() {
-
 		return $this->receiptHandle;
 	}
 
@@ -331,7 +294,6 @@ class Message {
 	 * @return string
 	 */
 	public function getMessageId() {
-
 		return $this->messageId;
 	}
 
@@ -339,8 +301,6 @@ class Message {
 	 * @return string
 	 */
 	public function getAsJson() {
-
-		$rawBody = [];
 		$rawBody['type'] = $this->type;
 		$rawBody['success'] = $this->success;
 
@@ -370,7 +330,6 @@ class Message {
 	 * @return null|string Message
 	 */
 	protected function jsonErrorMessage() {
-
 		$error = json_last_error();
 		if(!$error) {
 			return null;

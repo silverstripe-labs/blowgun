@@ -2,6 +2,8 @@
 namespace SilverStripe\BlowGun\Service;
 
 use Aws\Sqs\SqsClient;
+use Monolog\Logger;
+use SilverStripe\BlowGun\Exceptions\MessageLoadingException;
 use SilverStripe\BlowGun\Model\Message;
 
 class SQSHandler {
@@ -22,10 +24,19 @@ class SQSHandler {
 	protected $client = null;
 
 	/**
+	 * @var Logger
+	 */
+	protected $logger;
+
+	/**
 	 * @param string $profile
 	 * @param string $region
+	 * @param Logger $logger
 	 */
-	public function __construct($profile, $region) {
+	public function __construct($profile, $region, Logger $logger) {
+
+		$this->logger = $logger;
+
 		$this->client = SqsClient::factory(
 			[
 				'profile' => $profile,
@@ -60,7 +71,7 @@ class SQSHandler {
 	 *
 	 * @return \SilverStripe\BlowGun\Model\Message[]
 	 */
-	public function fetch($queueName, $wait = 2) {
+	public function fetch($queueName, $wait = 20) {
 
 		$queueURL = $this->getOrCreateQueueURL($queueName);
 
@@ -86,7 +97,11 @@ class SQSHandler {
 		$messages = [];
 		foreach($result['Messages'] as $message) {
 			$tmp = new Message($queueName, $this);
-			$tmp->load($message);
+			try {
+				$tmp->load($message);
+			} catch(MessageLoadingException $e) {
+				$this->logError($e->getMessage(), $tmp);
+			}
 			$messages[] = $tmp;
 		}
 		return $messages;
@@ -122,6 +137,14 @@ class SQSHandler {
 				'ReceiptHandle' => $message->getReceiptHandle(),
 			]
 		);
+	}
+
+	/**
+	 * @param $errorMsg
+	 * @param Message $message
+	 */
+	public function logError($errorMsg, Message $message) {
+		$this->logger->addError($errorMsg, [$message->getMessageId(), $message->getQueue()]);
 	}
 
 	/**
