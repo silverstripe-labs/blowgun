@@ -8,10 +8,10 @@ DATETIME=`date +"%Y-%d-%d_%H-%M-%S"`
 
 rm -rf /tmp/temp.pak
 echo "Running sspak save with mode '${mode}'"
-sspak save $webroot /tmp/temp.pak --${mode}
+/usr/local/bin/sspak save $webroot /tmp/temp.pak --${mode}
 
 echo "Saving snapshot"
-aws s3 --only-show-errors cp /tmp/temp.pak "s3://${bucket}/${bucket_folder}/${DATETIME}.pak"
+/usr/local/bin/aws s3 --only-show-errors cp /tmp/temp.pak "s3://${bucket}/${bucket_folder}/${DATETIME}.pak"
 
 echo "Cleaning up"
 rm -rf /tmp/temp.pak

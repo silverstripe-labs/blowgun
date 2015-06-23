@@ -1,0 +1,7 @@
+#!/bin/sh
+# postinst script for webpy-example
+#
+
+update-rc.d blowgun defaults
+
+echo "I'm installed!"

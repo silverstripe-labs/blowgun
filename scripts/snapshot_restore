@@ -11,10 +11,10 @@ fi
 
 rm -rf /tmp/temp.pak
 echo "Fetching snapshot"
-aws s3 --only-show-errors cp "s3://${bucket}/${key_name}" /tmp/temp.pak
+/usr/local/bin/aws s3 --only-show-errors cp "s3://${bucket}/${key_name}" /tmp/temp.pak
 
 echo "Running sspak load with mode '${mode}'"
-sspak load /tmp/temp.pak "${webroot}" --drop-db --${mode}
+/usr/local/bin/sspak load /tmp/temp.pak "${webroot}" --drop-db --${mode}
 
 
 # Capistrano code

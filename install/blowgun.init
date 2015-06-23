@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 ### BEGIN INIT INFO
 # Provides:          skeleton
 # Required-Start:    $remote_fs $syslog
@@ -12,14 +12,14 @@
 
 # Do NOT "set -e"
 
-PATH=/sbin:/usr/sbin:/bin:/usr/bin
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
 DESC="Blowgun is PHP daemon for listening on AWS SQS queues"
 NAME=blowgun
-DAEMON=/usr/bin/$NAME
-DAEMON_ARGS="listen --region ap-southeast-2 sean assets b /var/www/mysite/www /opt/blowgun/scripts"
+DAEMON="/usr/local/bin/$NAME"
+DAEMON_ARGS="listen --region ap-southeast-2 sean assets b /var/www/mysite/www /opt/blowgun"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
-USER="www-data"
+USERNAME="www-data"
 LOGFILE=/var/log/blowgun
 
 # Exit if the package is not installed
@@ -45,11 +45,8 @@ do_start()
 	#   0 if daemon has been started
 	#   1 if daemon was already running
 	#   2 if daemon could not be started
-	start-stop-daemon --start --quiet --background --make-pidfile --pidfile $PIDFILE --chuid $USER --exec $DAEMON --test > $LOGFILE 2>&1  \
-		|| return 1
-	start-stop-daemon --start --quiet --background --make-pidfile --pidfile $PIDFILE --chuid $USER --exec $DAEMON -- \
-		$DAEMON_ARGS > $LOGFILE 2>&1 \
-		|| return 2
+	start-stop-daemon --start --quiet --chuid $USERNAME --pidfile $PIDFILE --background --exec $DAEMON --test || return 1
+	start-stop-daemon --start --quiet --chuid $USERNAME --make-pidfile --pidfile $PIDFILE --background --exec $DAEMON -- $DAEMON_ARGS > $LOGFILE 2>&1 || return 2
 	# Add code here, if necessary, that waits for the process to be ready
 	# to handle requests from services started subsequently which depend
 	# on this one.  As a last resort, sleep for some time.
@@ -65,7 +62,7 @@ do_stop()
 	#   1 if daemon was already stopped
 	#   2 if daemon could not be stopped
 	#   other if a failure occurred
-	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --name $NAME
+	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE
 	RETVAL="$?"
 	[ "$RETVAL" = 2 ] && return 2
 	# Wait for children to finish too if this is a daemon that forks
@@ -79,19 +76,6 @@ do_stop()
 	# Many daemons don't delete their pidfiles when they exit.
 	rm -f $PIDFILE
 	return "$RETVAL"
-}
-
-#
-# Function that sends a SIGHUP to the daemon/service
-#
-do_reload() {
-	#
-	# If the daemon can reload its configuration without
-	# restarting (for example, when it is sent a SIGHUP),
-	# then implement that here.
-	#
-	start-stop-daemon --stop --signal 1 --quiet --pidfile $PIDFILE --name $NAME
-	return 0
 }
 
 case "$1" in
@@ -114,15 +98,6 @@ case "$1" in
   status)
 	status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
 	;;
-  #reload|force-reload)
-	#
-	# If do_reload() is not implemented then leave this commented out
-	# and leave 'force-reload' as an alias for 'restart'.
-	#
-	#log_daemon_msg "Reloading $DESC" "$NAME"
-	#do_reload
-	#log_end_msg $?
-	#;;
   restart|force-reload)
 	#
 	# If the "reload" option is implemented then remove the
@@ -146,7 +121,6 @@ case "$1" in
 	esac
 	;;
   *)
-	#echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
 	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
 	exit 3
 	;;
