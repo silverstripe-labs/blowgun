@@ -8,7 +8,7 @@ class Message {
 	/**
 	 * @var array
 	 */
-	protected $rawMessage = array();
+	protected $rawMessage = [];
 
 	/**
 	 * @var bool
@@ -75,6 +75,7 @@ class Message {
 	 * @param SQSHandler $handler
 	 */
 	public function __construct($fromQueue, SQSHandler $handler) {
+
 		$this->queue = $fromQueue;
 		$this->handler = $handler;
 	}
@@ -105,13 +106,13 @@ class Message {
 		}
 		$this->type = $body['type'];
 
-		if (isset($body['success'])) {
+		if(isset($body['success'])) {
 			$this->success = $body['success'];
 		}
-		if (isset($body['message'])) {
+		if(isset($body['message'])) {
 			$this->message = $body['message'];
 		}
-		if (isset($body['error_message'])) {
+		if(isset($body['error_message'])) {
 			$this->errorMessage = $body['error_message'];
 		}
 
@@ -132,6 +133,7 @@ class Message {
 	 * @param $seconds
 	 */
 	public function increaseVisibility($seconds) {
+
 		$this->handler->addVisibilityTimeout($this, $seconds);
 	}
 
@@ -139,6 +141,7 @@ class Message {
 	 *
 	 */
 	public function send() {
+
 		$this->handler->send($this);
 	}
 
@@ -146,6 +149,7 @@ class Message {
 	 *
 	 */
 	public function deleteFromQueue() {
+
 		$this->handler->delete($this);
 	}
 
@@ -157,6 +161,7 @@ class Message {
 	 * @return boolean
 	 */
 	public function isValid() {
+
 		return $this->valid;
 	}
 
@@ -164,6 +169,7 @@ class Message {
 	 * @return string
 	 */
 	public function getQueue() {
+
 		return $this->queue;
 	}
 
@@ -171,14 +177,17 @@ class Message {
 	 * @return bool
 	 */
 	public function getSuccess() {
+
 		return $this->success;
 	}
 
 	/**
 	 * @param bool $success
+	 *
 	 * @return Message
 	 */
 	public function setSuccess($success) {
+
 		$this->success = $success;
 		return $this;
 	}
@@ -187,14 +196,17 @@ class Message {
 	 * @return string
 	 */
 	public function getMessage() {
+
 		return $this->message;
 	}
 
 	/**
 	 * @param string $message
+	 *
 	 * @return Message
 	 */
 	public function setMessage($message) {
+
 		$this->message = $message;
 		return $this;
 	}
@@ -203,6 +215,7 @@ class Message {
 	 * @return string
 	 */
 	public function getErrorMessage() {
+
 		return $this->errorMessage;
 	}
 
@@ -210,14 +223,17 @@ class Message {
 	 * @param $msg
 	 */
 	public function setErrorMessage($msg) {
+
 		$this->errorMessage = $msg;
 	}
 
 	/**
 	 * @param $name
+	 *
 	 * @return string|null
 	 */
 	public function getArgument($name) {
+
 		if(isset($this->arguments[$name])) {
 			return $this->arguments[$name];
 		}
@@ -228,15 +244,18 @@ class Message {
 	 * @return array
 	 */
 	public function getArguments() {
+
 		return $this->arguments;
 	}
 
 	/**
 	 * @param $name
 	 * @param $value
+	 *
 	 * @return Message
 	 */
 	public function setArgument($name, $value) {
+
 		$this->arguments[$name] = $value;
 		return $this;
 	}
@@ -245,14 +264,17 @@ class Message {
 	 * @return string
 	 */
 	public function getType() {
+
 		return $this->type;
 	}
 
 	/**
 	 * @param $type
+	 *
 	 * @return Message
 	 */
 	public function setType($type) {
+
 		$this->type = $type;
 		return $this;
 	}
@@ -261,15 +283,18 @@ class Message {
 	 * @return string
 	 */
 	public function getRespondTo() {
+
 		return $this->respondTo;
 	}
 
 	/**
 	 * @param string $queueName
 	 * @param string $id
+	 *
 	 * @return Message
 	 */
 	public function setRespondTo($queueName, $id) {
+
 		$this->respondTo = $queueName;
 		$this->responseId = $id;
 		return $this;
@@ -279,14 +304,17 @@ class Message {
 	 * @return string
 	 */
 	public function getResponseId() {
+
 		return $this->responseId;
 	}
 
 	/**
 	 * @param string $responseId
+	 *
 	 * @return Message
 	 */
 	public function setResponseId($responseId) {
+
 		$this->responseId = $responseId;
 		return $this;
 	}
@@ -295,6 +323,7 @@ class Message {
 	 * @return string
 	 */
 	public function getReceiptHandle() {
+
 		return $this->receiptHandle;
 	}
 
@@ -302,6 +331,7 @@ class Message {
 	 * @return string
 	 */
 	public function getMessageId() {
+
 		return $this->messageId;
 	}
 
@@ -309,7 +339,8 @@ class Message {
 	 * @return string
 	 */
 	public function getAsJson() {
-		$rawBody = array();
+
+		$rawBody = [];
 		$rawBody['type'] = $this->type;
 		$rawBody['success'] = $this->success;
 
@@ -319,14 +350,14 @@ class Message {
 		if($this->respondTo) {
 			$rawBody['respond_to'] = $this->respondTo;
 		}
-		if (!empty($this->responseId)) {
+		if(!empty($this->responseId)) {
 			$rawBody['response_id'] = $this->responseId;
 		}
 
-		if (!empty($this->message)) {
+		if(!empty($this->message)) {
 			$rawBody['message'] = $this->message;
 		}
-		if (!empty($this->errorMessage)) {
+		if(!empty($this->errorMessage)) {
 			$rawBody['error_message'] = $this->errorMessage;
 		}
 		return json_encode($rawBody, JSON_PRETTY_PRINT);
@@ -339,10 +370,13 @@ class Message {
 	 * @return null|string Message
 	 */
 	protected function jsonErrorMessage() {
-		$error = json_last_error();
-		if(!$error) return null;
 
-		switch ($error) {
+		$error = json_last_error();
+		if(!$error) {
+			return null;
+		}
+
+		switch($error) {
 			case JSON_ERROR_NONE:
 				return 'No errors';
 				break;

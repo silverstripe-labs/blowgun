@@ -21,17 +21,19 @@ class BlowGunCredentials extends Credentials {
 	 * Get the default region from the profile
 	 *
 	 * @param string $profile
+	 *
 	 * @return string Region id
 	 * @throws \RuntimeException
 	 */
 	public static function defaultRegion($profile = null) {
+
 		$credentialFile = self::getHomeDir() . '/.aws/credentials';
 		$configFile = self::getHomeDir() . '/.aws/config';
-		$configData = array();
-		$credentialData = array();
+		$configData = [];
+		$credentialData = [];
 
 		// try with the default profile
-		if (!$profile) {
+		if(!$profile) {
 			$profile = self::defaultProfile();
 		}
 
@@ -47,9 +49,11 @@ class BlowGunCredentials extends Credentials {
 			}
 		}
 
-		foreach(array($credentialData, $configData) as $data) {
-			foreach(array($profile, "profile $profile") as $section) {
-				if(isset($data[$section]['region'])) return $data[$section]['region'];
+		foreach([$credentialData, $configData] as $data) {
+			foreach([$profile, "profile $profile"] as $section) {
+				if(isset($data[$section]['region'])) {
+					return $data[$section]['region'];
+				}
 			}
 		}
 		return '';
@@ -59,6 +63,7 @@ class BlowGunCredentials extends Credentials {
 	 * @return bool
 	 */
 	protected static function checkForCredentialFile() {
+
 		$credentialFile = self::getHomeDir() . '/.aws/credentials';
 		$configFile = self::getHomeDir() . '/.aws/config';
 
@@ -76,8 +81,9 @@ class BlowGunCredentials extends Credentials {
 	 * @return mixed|null|string
 	 */
 	private static function getHomeDir() {
+
 		// On Linux/Unix-like systems, use the HOME environment variable
-		if ($homeDir = self::getEnvVar('HOME')) {
+		if($homeDir = self::getEnvVar('HOME')) {
 			return $homeDir;
 		}
 

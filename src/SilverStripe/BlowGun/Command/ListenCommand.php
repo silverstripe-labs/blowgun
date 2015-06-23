@@ -2,8 +2,8 @@
 namespace SilverStripe\BlowGun\Command;
 
 use SilverStripe\BlowGun\Model\Command;
-use SilverStripe\BlowGun\Model\Status;
 use SilverStripe\BlowGun\Model\Message;
+use SilverStripe\BlowGun\Model\Status;
 use SilverStripe\BlowGun\Service\SQSHandler;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -35,7 +35,6 @@ class ListenCommand extends BaseCommand {
 	protected $handler = null;
 
 	protected function configure() {
-
 		parent::configure();
 		$this->setName('listen');
 		$this->addArgument('cluster');
@@ -107,7 +106,8 @@ class ListenCommand extends BaseCommand {
 	 */
 	protected function getQueueNameFromInput(InputInterface $input) {
 
-		$queueName = sprintf('%s-%s-%s',
+		$queueName = sprintf(
+			'%s-%s-%s',
 			$input->getArgument('cluster'),
 			$input->getArgument('stack'),
 			$input->getArgument('env')
@@ -144,7 +144,7 @@ class ListenCommand extends BaseCommand {
 			$this->logError($error, $message);
 		}
 
-		foreach ($status->getNotices() as $notice) {
+		foreach($status->getNotices() as $notice) {
 			$this->logNotice($notice, $message);
 		}
 
@@ -167,21 +167,11 @@ class ListenCommand extends BaseCommand {
 		$responseMsg->setResponseId($oldMessage->getResponseId());
 		$responseMsg->setSuccess($status->isSuccessful());
 
-		if(count($status->getData())) {
-			foreach($status->getData() as $key => $value) {
-				$responseMsg->setArgument($key, $value);
-			}
+		foreach($status->getData() as $key => $value) {
+			$responseMsg->setArgument($key, $value);
 		}
-		if(count($status->getErrors())) {
-			$responseMsg->setErrorMessage(
-				implode(PHP_EOL, $status->getErrors())
-			);
-		}
-		if(count($status->getNotices())) {
-			$responseMsg->setMessage(
-				implode(PHP_EOL, $status->getNotices())
-			);
-		}
+		$responseMsg->setErrorMessage(implode(PHP_EOL, $status->getErrors()));
+		$responseMsg->setMessage(implode(PHP_EOL, $status->getNotices()));
 		$responseMsg->send();
 	}
 
@@ -190,7 +180,6 @@ class ListenCommand extends BaseCommand {
 	 * @param Message|string $message
 	 */
 	protected function logError($string, Message $message) {
-
 		$this->log->addError($string, [$message->getQueue(), $message->getMessageId()]);
 	}
 
@@ -199,7 +188,6 @@ class ListenCommand extends BaseCommand {
 	 * @param Message|string $message
 	 */
 	protected function logNotice($string, Message $message) {
-
 		$this->log->addNotice($string, [$message->getQueue(), $message->getMessageId()]);
 	}
 }

@@ -52,12 +52,13 @@ class Command {
 	 * @return Process
 	 */
 	protected function getProcess() {
+
 		$scriptPath = sprintf(
 			"%s/%s",
 			realpath($this->scriptDir),
 			basename($this->message->getType())
 		);
-		$builder = new ProcessBuilder(array($scriptPath));
+		$builder = new ProcessBuilder([$scriptPath]);
 		// Inject the arguments into the ENV for the script, it's the easiest
 		// way to get key=value params into it since there is other good option
 		// for // supplying named parameters for a bash script
@@ -75,9 +76,11 @@ class Command {
 	 *
 	 */
 	protected function execProcess(Status $status) {
+
 		// Run the command and capture data from stdout
 		$this->process->start(
 			function ($type, $buffer) use ($status) {
+
 				foreach(explode(PHP_EOL, $buffer) as $line) {
 					$line = trim($line);
 					if(!$line) {
@@ -103,7 +106,7 @@ class Command {
 		$timeout = (self::MSG_DEFAULT_VISIBILITY - 10);
 		while($this->process->isRunning()) {
 			$now = time();
-			if($previousTime + $timeout <  $now) {
+			if($previousTime + $timeout < $now) {
 				$this->message->increaseVisibility($timeout);
 				$previousTime = $now;
 			}
