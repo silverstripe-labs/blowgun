@@ -38,7 +38,7 @@ class Status {
 	 * @param $line
 	 */
 	public function addError($line) {
-		$this->errors = trim($line);
+		$this->errors[] = trim($line);
 	}
 
 	/**
