@@ -40,6 +40,20 @@ abstract class BaseCommand extends Command {
 	protected $log;
 
 	/**
+	 * @param InputInterface $input
+	 * @param OutputInterface $output
+	 *
+	 * @return void
+	 */
+	protected function execute(InputInterface $input, OutputInterface $output) {
+		// Load credentials
+		$this->setCredentials($input);
+		$this->log = new Logger('blowgun');
+		$this->log->pushHandler(new SyslogHandler('blowgun'));
+		$this->log->pushHandler(new StreamHandler(STDOUT));
+	}
+
+	/**
 	 * Check selected profile and region
 	 *
 	 * @param InputInterface $input
@@ -96,17 +110,5 @@ abstract class BaseCommand extends Command {
 		     ->addOption('role-arn', null, InputOption::VALUE_REQUIRED, 'AWS role arn for temporary assuming a role');
 	}
 
-	/**
-	 * @param InputInterface $input
-	 * @param OutputInterface $output
-	 *
-	 * @return void
-	 */
-	protected function execute(InputInterface $input, OutputInterface $output) {
-		// Load credentials
-		$this->setCredentials($input);
-		$this->log = new Logger('blowgun');
-		$this->log->pushHandler(new SyslogHandler('blowgun'));
-		$this->log->pushHandler(new StreamHandler(STDOUT));
-	}
+
 }
