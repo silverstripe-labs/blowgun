@@ -44,8 +44,7 @@ abstract class BaseCommand extends Command {
 	 *
 	 */
 	protected function configure() {
-		$this
-			->addOption('profile', 'p', InputOption::VALUE_OPTIONAL, 'AWS profile')
+		$this->addOption('profile', 'p', InputOption::VALUE_OPTIONAL, 'AWS profile')
 			->addOption('region', 'r', InputOption::VALUE_REQUIRED, 'AWS Region')
 			->addOption('role-arn', null, InputOption::VALUE_REQUIRED, 'AWS role arn for temporary assuming a role');
 	}
@@ -56,12 +55,6 @@ abstract class BaseCommand extends Command {
 	 * @return void
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output) {
-		// Custom styles
-		$output->getFormatter()->setStyle(
-			'header',
-			new OutputFormatterStyle('blue', 'white', array('bold'))
-		);
-
 		// Load credentials
 		$this->setCredentials($input);
 		$this->log = new Logger('blowgun');
@@ -77,7 +70,6 @@ abstract class BaseCommand extends Command {
 	 */
 	public function setCredentials(InputInterface $input)
 	{
-		// Skip if already set
 		if ($this->profile && $this->region) {
 			return;
 		}

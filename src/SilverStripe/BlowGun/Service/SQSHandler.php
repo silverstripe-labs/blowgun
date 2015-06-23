@@ -82,7 +82,7 @@ class SQSHandler {
 
 		$messages = array();
 		foreach($result['Messages'] as $message) {
-			$tmp = new Message($queueName);
+			$tmp = new Message($queueName, $this);
 			$tmp->load($message);
 			$messages[] = $tmp;
 		}
@@ -105,6 +105,9 @@ class SQSHandler {
 	 * @param Message $message
 	 */
 	public function delete(Message $message) {
+		if(!($message->getReceiptHandle())) {
+			throw new \RuntimeException("Can't delete message without ReceiptHandle():\n".$message->getAsJson());
+		}
 		$queueURL = $this->getOrCreateQueueURL($message->getQueue());
 		$this->client->deleteMessage(array(
 			'QueueUrl' => $queueURL,
@@ -120,6 +123,9 @@ class SQSHandler {
 	 * @param int $seconds
 	 */
 	public function addVisibilityTimeout(Message $message, $seconds) {
+		if(!($message->getReceiptHandle())) {
+			throw new \RuntimeException("Can't delete message without ReceiptHandle:\n".$message->getAsJson());
+		}
 		$queueURL = $this->getOrCreateQueueURL($message->getQueue());
 		$this->client->changeMessageVisibility([
 			'QueueUrl' => $queueURL,

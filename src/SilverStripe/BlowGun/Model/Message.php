@@ -1,6 +1,8 @@
 <?php
 namespace SilverStripe\BlowGun\Model;
 
+use SilverStripe\BlowGun\Service\SQSHandler;
+
 class Message {
 
 	/**
@@ -59,15 +61,22 @@ class Message {
 	protected $message;
 
 	/**
+	 * @var SQSHandler
+	 */
+	protected $handler;
+
+	/**
 	 * @var string
 	 */
 	private $queue;
 
 	/**
 	 * @param string $fromQueue
+	 * @param SQSHandler $handler
 	 */
-	public function __construct($fromQueue) {
+	public function __construct($fromQueue, SQSHandler $handler) {
 		$this->queue = $fromQueue;
+		$this->handler = $handler;
 	}
 
 	/**
@@ -117,6 +126,27 @@ class Message {
 		if(isset($body['response_id'])) {
 			$this->responseId = $body['response_id'];
 		}
+	}
+
+	/**
+	 * @param $seconds
+	 */
+	public function increaseVisibility($seconds) {
+		$this->handler->addVisibilityTimeout($this, $seconds);
+	}
+
+	/**
+	 *
+	 */
+	public function send() {
+		$this->handler->send($this);
+	}
+
+	/**
+	 *
+	 */
+	public function deleteFromQueue() {
+		$this->handler->delete($this);
 	}
 
 	/**

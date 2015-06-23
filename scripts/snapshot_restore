@@ -10,12 +10,10 @@ if [ -z "$webroot" ]; then
 fi
 
 rm -rf /tmp/temp.pak
-
 echo "Fetching snapshot"
-curl --silent --output /tmp/temp.pak ${sspak_url}
+aws s3 --only-show-errors cp "s3://${bucket}/${key_name}" /tmp/temp.pak
 
 echo "Running sspak load with mode '${mode}'"
-rm -rf "${webroot}/assets"
 sspak load /tmp/temp.pak "${webroot}" --drop-db --${mode}
 
 
