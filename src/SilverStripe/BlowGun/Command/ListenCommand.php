@@ -136,6 +136,7 @@ class ListenCommand extends BaseCommand {
 			return;
 		}
 
+		$this->logNotice(sprintf('Running job %s', $message->getType()), $message);
 		$command = new Command($message, $this->scriptDir, $this->siteRoot);
 		$status = $command->run();
 
@@ -166,15 +167,17 @@ class ListenCommand extends BaseCommand {
 		$responseMsg->setResponseId($oldMessage->getResponseId());
 		$responseMsg->setSuccess($status->isSuccessful());
 
-		foreach($status->getData() as $key => $value) {
-			$responseMsg->setArgument($key, $value);
+		if(count($status->getData())) {
+			foreach($status->getData() as $key => $value) {
+				$responseMsg->setArgument($key, $value);
+			}
 		}
-		if($status->getErrors()) {
+		if(count($status->getErrors())) {
 			$responseMsg->setErrorMessage(
 				implode(PHP_EOL, $status->getErrors())
 			);
 		}
-		if($status->getNotices()) {
+		if(count($status->getNotices())) {
 			$responseMsg->setMessage(
 				implode(PHP_EOL, $status->getNotices())
 			);
