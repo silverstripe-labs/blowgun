@@ -30,7 +30,7 @@ SNAPSHOTBUCKET="silverstripe-snapshots"
 [ -x "$DAEMON" ] || exit 0
 
 # Read configuration variable file if it is present
-[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+[ -r /etc/default/bootstrapper ] && . /etc/default/bootstrapper
 
 DAEMON_ARGS="listen --region ${REGION} ${CLUSTER} ${STACK} ${ENVIRONMENT} --bucket ${SNAPSHOTBUCKET} /var/www/mysite/www /opt/blowgun"
 

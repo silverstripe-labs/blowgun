@@ -21,15 +21,18 @@ printf "\nCompressing scripts\n"
 tar -zcf scripts.tar.gz scripts
 rm -rf scripts
 
-VERSION="blowgun_1.0.0"
+VERSION="blowgun_latest"
 mkdir $VERSION
 
 mkdir -p $VERSION/usr/local/bin
 cp blowgun $VERSION/usr/local/bin/blowgun
+cp ../install/bootstrapper $VERSION/usr/local/bin/bootstrapper
 
 mkdir -p $VERSION/etc/init.d/
 cp ../install/blowgun.init $VERSION/etc/init.d/blowgun
+cp ../install/bootstrapper.init $VERSION/etc/init.d/bootstrapper
 chmod 0755 $VERSION/etc/init.d/blowgun
+chmod 0755 $VERSION/etc/init.d/bootstrapper
 
 mkdir -p $VERSION/opt/blowgun
 cp ../scripts/* $VERSION/opt/blowgun/

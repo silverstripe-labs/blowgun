@@ -1,0 +1,56 @@
+#!/usr/bin/php
+<?php
+# This is quite horrible, but fast to ship!
+const METADATA_URL = 'http://169.254.169.254/latest/meta-data/';
+
+function curl($path) {
+	return shell_exec('curl -s ' . METADATA_URL . $path . ' 2>&1');
+}
+
+function shell($command) {
+	$output = [];
+	exec($command. ' 2>&1', $output, $status);
+	if($status != 0) {
+		return '';
+	}
+	return trim(implode(PHP_EOL, $output));
+}
+
+$data = [];
+$data[PHP_EOL."## Basic Info"] = '';
+$data['instance_id'] = $instance_id = curl('instance-id');
+$data['zone'] = curl('placement/availability-zone/');
+$data['availability_zone'] = substr($data['zone'], -1);
+$data['region'] = $region = substr($data['zone'], 0, -1);
+$data['stack_id'] = $stack_id = shell('/usr/local/bin/aws ec2 describe-tags --region ' . $region . ' --filters Name=resource-id,Values=' . $instance_id . ' Name=key,Values=aws:cloudformation:stack-id --query \'Tags[0].Value\' --output text');
+$data['instance_name'] = shell('/usr/local/bin/aws ec2 describe-tags --region ' . $region . ' --filters Name=resource-id,Values=$instance_id Name=key,Values=aws:cloudformation:stack-id --query \'Tags[0].Value\' --output text');
+
+$rawStacks = shell('/usr/local/bin/aws --region ' . $region . ' cloudformation describe-stacks --stack-name ' . $stack_id);
+$stacks = json_decode($rawStacks, true);
+if(!empty($stacks['Stacks'][0])) {
+	$data[PHP_EOL."## Stack info"] = '';
+	$stack = $stacks['Stacks'][0];
+	$data['StackName'] = $stack['StackName'];
+
+	$data[PHP_EOL."## Stack Tags"] = '';
+	foreach($stack['Tags'] as $tags) {
+		$data[str_replace(':', '_', $tags['Key'])] = $tags['Value'];
+	}
+
+	$data[PHP_EOL."## Stack Parameters"] = '';
+	foreach($stack['Parameters'] as $output) {
+		$data[$output['ParameterKey']] = $output['ParameterValue'];
+	}
+
+	$data[PHP_EOL."## Stack Outputs"] = '';
+	foreach($stack['Outputs'] as $output) {
+		$data[$output['OutputKey']] = $output['OutputValue'];
+	}
+}
+foreach($data as $key => $value) {
+	if($value) {
+		printf("%s=\"%s\"".PHP_EOL, strtoupper($key), $value);
+	} else {
+		printf("%s".PHP_EOL, strtoupper($key));
+	}
+}

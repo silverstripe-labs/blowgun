@@ -1,0 +1,42 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          bootstrapper
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Starting bootstrapper as a daemoon
+### END INIT INFO
+
+# Author: Cloudbusters <cloudbusters@silverstripe.com>
+
+# Do NOT "set -e"
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
+DESC="Executes a script that describes AWS environment variables, such as CloudFormation parameters and outputs, and puts these into a file"
+NAME=bootstrapper
+DAEMON="/usr/local/bin/$NAME"
+SCRIPTNAME=/etc/init.d/$NAME
+
+# Exit if the package is not installed
+[ -x "$DAEMON" ] || exit 0
+
+do_execute()
+{
+	$DAEMON > /etc/defaults/bootstrapper || return 2
+}
+
+case "$1" in
+  start)
+	do_execute
+	;;
+  restart|force-reload)
+	do_execute
+	;;
+  *)
+	echo "Usage: $SCRIPTNAME {start|restart|force-reload}" >&2
+	exit 3
+	;;
+esac
+
+:
