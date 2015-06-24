@@ -11,7 +11,7 @@ rm -rf ${BUILDDIR} && mkdir -p ${BUILDDIR}
 
 phar-composer build .
 chmod a+x blowgun.phar
-cp blowgun.phar .build/blowgun
+mv blowgun.phar .build/blowgun
 
 cp -R scripts ${BUILDDIR}
 cd ${BUILDDIR}
