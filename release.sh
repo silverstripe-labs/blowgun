@@ -27,6 +27,7 @@ mkdir $VERSION
 mkdir -p $VERSION/usr/local/bin
 cp blowgun $VERSION/usr/local/bin/blowgun
 cp ../install/bootstrapper $VERSION/usr/local/bin/bootstrapper
+chmod +x $VERSION/usr/local/bin/bootstrapper
 
 mkdir -p $VERSION/etc/init.d/
 cp ../install/blowgun.init $VERSION/etc/init.d/blowgun
