@@ -23,7 +23,7 @@ SCRIPTNAME=/etc/init.d/$NAME
 
 do_execute()
 {
-	$DAEMON > /etc/defaults/bootstrapper || return 2
+	$DAEMON > /etc/default/bootstrapper || return 2
 }
 
 case "$1" in
