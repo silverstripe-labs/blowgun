@@ -61,7 +61,6 @@ class ListenCommand extends BaseCommand {
 
 		while(true) {
 			foreach($this->getQueues($input) as $queueName) {
-				$this->log->addNotice("fetching from ".$queueName);
 				$messages = $this->handler->fetch($queueName, 10);
 				foreach($messages as $message) {
 					$this->handleMessage($message);

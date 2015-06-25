@@ -1,18 +1,18 @@
 #!/bin/bash -e
 
-SNAPSHOT_DIR="/var/www/mysite/snapshots"
-TIMESTAMP=`date +"%Y-%d-%m_%H-%M-%S"`
-LOCAL_SSPAK=${SNAPSHOT_DIR}/${TIMESTAMP}.sspak
-REMOTE_SSPAK="s3://${bucket}/${bucket_folder}/${TIMESTAMP}.sspak"
+if [ -z "$webroot" ]; then
+	echo "\$webroot not defined"
+	exit 2
+fi
 
 if [ -z "$mode" ]; then
 	mode="all"
 fi
 
-if [ -z "$webroot" ]; then
-	echo "\$webroot not defined"
-	exit 2
-fi
+SNAPSHOT_DIR="/var/www/mysite/snapshots"
+TIMESTAMP=`date +"%Y-%d-%m_%H-%M-%S"`
+LOCAL_SSPAK=${SNAPSHOT_DIR}/${TIMESTAMP}.sspak
+REMOTE_SSPAK="s3://${bucket}/${bucket_folder}/${TIMESTAMP}.sspak"
 
 rm -rf ${SNAPSHOT_DIR}
 mkdir -p ${SNAPSHOT_DIR}
