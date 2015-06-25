@@ -1,6 +1,7 @@
 <?php
 namespace SilverStripe\BlowGun\Command;
 
+use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogHandler;
 use Monolog\Logger;
@@ -49,8 +50,16 @@ abstract class BaseCommand extends Command {
 		// Load credentials
 		$this->setCredentials($input);
 		$this->log = new Logger('blowgun');
-		$this->log->pushHandler(new SyslogHandler('blowgun'));
-		$this->log->pushHandler(new StreamHandler(STDOUT));
+
+		$sysLogger = new SyslogHandler('blowgun');
+		$syslogFormatter = new LineFormatter("%level_name% - %message% %context%\n");
+		$sysLogger->setFormatter($syslogFormatter);
+		$this->log->pushHandler($sysLogger);
+
+		$streamLogger = new StreamHandler(STDOUT);
+		$streamFormatter = new LineFormatter("[%datetime%] %channel%.%level_name%: %message% %context%\n");
+		$streamLogger->setFormatter($streamFormatter);
+		$this->log->pushHandler($streamLogger );
 	}
 
 	/**
