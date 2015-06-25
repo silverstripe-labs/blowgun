@@ -24,7 +24,6 @@ REGION="ap-southeast-2"
 CLUSTER="undefined"
 STACK="undefined"
 ENVIRONMENT="undefined"
-SNAPSHOTBUCKET="silverstripe-snapshots"
 
 # Exit if the package is not installed
 [ -x "$DAEMON" ] || exit 0
@@ -32,7 +31,7 @@ SNAPSHOTBUCKET="silverstripe-snapshots"
 # Read configuration variable file if it is present
 [ -r /etc/default/bootstrapper ] && . /etc/default/bootstrapper
 
-DAEMON_ARGS="listen --region ${REGION} ${CLUSTER} ${STACK} ${ENVIRONMENT} --bucket ${SNAPSHOTBUCKET} /var/www/mysite/www /opt/blowgun"
+DAEMON_ARGS="listen --region ${REGION} ${CLUSTER} ${STACK} ${ENVIRONMENT} /var/www/mysite/www /opt/blowgun"
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh
