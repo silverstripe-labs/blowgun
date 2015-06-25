@@ -58,12 +58,14 @@ class ListenCommand extends BaseCommand {
 		$this->handler = new SQSHandler($this->profile, $this->region, $this->log);
 		$this->siteRoot = $this->getDirectoryFromInput($input, 'site-root');
 		$this->scriptDir = $this->getDirectoryFromInput($input, 'script-dir');
-		$queueName = $this->getQueueNameFromInput($input);
 
 		while(true) {
-			$messages = $this->handler->fetch($queueName);
-			foreach($messages as $message) {
-				$this->handleMessage($message);
+			foreach($this->getQueues($input) as $queueName) {
+				$this->log->addNotice("fetching from ".$queueName);
+				$messages = $this->handler->fetch($queueName, 10);
+				foreach($messages as $message) {
+					$this->handleMessage($message);
+				}
 			}
 		}
 	}
@@ -102,10 +104,9 @@ class ListenCommand extends BaseCommand {
 	/**
 	 * @param InputInterface $input
 	 *
-	 * @return string
+	 * @return array
 	 */
-	protected function getQueueNameFromInput(InputInterface $input) {
-
+	protected function getQueues(InputInterface $input) {
 		$queueName = sprintf(
 			'%s-%s-%s',
 			$input->getArgument('cluster'),
@@ -113,7 +114,15 @@ class ListenCommand extends BaseCommand {
 			$input->getArgument('env')
 		);
 
-		return $queueName;
+		$instanceQueue = sprintf("%s-instance-%s",
+               $queueName,
+               preg_replace("/[^a-zA-Z0-9_-]/", '-', trim(gethostname()))
+		);
+
+		$queues = [];
+		$queues[] = substr($instanceQueue, 0, 80);
+		$queues[] = $queueName.'-stack';
+		return $queues;
 	}
 
 	/**
