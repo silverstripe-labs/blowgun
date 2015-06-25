@@ -1,12 +1,18 @@
 <?php
 namespace SilverStripe\BlowGun\Service;
 
+use Aws\Common\Credentials\Credentials;
 use Aws\Sqs\SqsClient;
 use Monolog\Logger;
 use SilverStripe\BlowGun\Exceptions\MessageLoadingException;
 use SilverStripe\BlowGun\Model\Message;
 
 class SQSHandler {
+
+	/**
+	 * @var Credentials
+	 */
+	protected static $credentials;
 
 	/**
 	 * @var string
@@ -28,6 +34,10 @@ class SQSHandler {
 	 */
 	protected $logger;
 
+	public static function setCredentials(Credentials $credentials) {
+		self::$credentials = $credentials;
+	}
+
 	/**
 	 * @param string $profile
 	 * @param string $region
@@ -37,12 +47,31 @@ class SQSHandler {
 
 		$this->logger = $logger;
 
+		if(self::$credentials) {
+			$this->client =  SqsClient::factory(array(
+	             'credentials' => self::$credentials,
+	             'region' => $region
+	         ));
+			return;
+		}
 		$this->client = SqsClient::factory(
 			[
 				'profile' => $profile,
 				'region' => $region,
 			]
 		);
+	}
+
+	public function listQueues($queuePrefix) {
+		$result = $this->client->listQueues(['QueueNamePrefix' => $queuePrefix]);
+		if(!isset($result['QueueUrls'])) {
+			return [];
+		}
+		$queueNames = [];
+		foreach($result['QueueUrls'] as $queueURL) {
+			$queueNames[] = basename($queueURL);
+		}
+		return $queueNames;
 	}
 
 	/**
@@ -111,7 +140,6 @@ class SQSHandler {
 	 * @param Message $message
 	 */
 	public function send(Message $message) {
-
 		$queueURL = $this->getOrCreateQueueURL($message->getQueue());
 		$this->client->sendMessage(
 			[

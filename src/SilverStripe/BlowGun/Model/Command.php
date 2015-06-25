@@ -62,8 +62,10 @@ class Command {
 		// Inject the arguments into the ENV for the script, it's the easiest
 		// way to get key=value params into it since there is other good option
 		// for // supplying named parameters for a bash script
-		foreach($this->message->getArguments() as $name => $value) {
-			$builder->setEnv($name, $value);
+		if($this->message->getArguments()) {
+			foreach($this->message->getArguments() as $name => $value) {
+				$builder->setEnv($name, $value);
+			}
 		}
 		$builder->setEnv('webroot', $this->siteRoot);
 		$process = $builder->getProcess();
