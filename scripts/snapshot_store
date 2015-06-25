@@ -1,4 +1,10 @@
 #!/bin/bash -e
+
+SNAPSHOT_DIR="/var/www/mysite/snapshots"
+TIMESTAMP=`date +"%Y-%d-%m_%H-%M-%S"`
+LOCAL_SSPAK=${SNAPSHOT_DIR}/${TIMESTAMP}.sspak
+REMOTE_SSPAK="s3://${bucket}/${bucket_folder}/${TIMESTAMP}.sspak"
+
 if [ -z "$mode" ]; then
 	mode="all"
 fi
@@ -8,15 +14,15 @@ if [ -z "$webroot" ]; then
 	exit 2
 fi
 
-DATETIME=`date +"%Y-%d-%d_%H-%M-%S"`
-
-rm -rf /tmp/temp.pak
+rm -rf ${SNAPSHOT_DIR}
 echo "Running sspak save with mode '${mode}'"
-/usr/local/bin/sspak save ${webroot} /tmp/temp.pak --${mode}
+/usr/local/bin/sspak save ${webroot} ${LOCAL_SSPAK} --${mode}
 
 echo "Saving snapshot"
-/usr/local/bin/aws s3 --only-show-errors cp /tmp/temp.pak "s3://${bucket}/${bucket_folder}/${DATETIME}.pak"
+/usr/local/bin/aws s3 --only-show-errors cp ${LOCAL_SSPAK} ${REMOTE_SSPAK}
 
 echo "Cleaning up"
-rm -rf /tmp/temp.pak
-echo "sspak_url=s3://${bucket}/${bucket_folder}/${DATETIME}.pak"
+rm -rf ${SNAPSHOT_DIR}
+
+echo "sspak_url=${REMOTE_SSPAK}"
+
