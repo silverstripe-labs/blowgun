@@ -1,8 +1,0 @@
-#!/bin/bash -e
-
-if [ -z "$webroot" ]; then
-	echo "\$webroot not defined"
-	exit 2
-fi
-
-echo "maintaince start"
