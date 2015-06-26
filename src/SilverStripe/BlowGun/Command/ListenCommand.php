@@ -6,6 +6,7 @@ use SilverStripe\BlowGun\Model\Message;
 use SilverStripe\BlowGun\Model\Status;
 use SilverStripe\BlowGun\Service\SQSHandler;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -30,6 +31,11 @@ class ListenCommand extends BaseCommand {
 	protected $scriptDir = '';
 
 	/**
+	 * @var string
+	 */
+	protected $nodeName = '';
+
+	/**
 	 * @var SQSHandler
 	 */
 	protected $handler = null;
@@ -40,8 +46,9 @@ class ListenCommand extends BaseCommand {
 		$this->addArgument('cluster');
 		$this->addArgument('stack');
 		$this->addArgument('env');
-		$this->addArgument('site-root');
-		$this->addArgument('script-dir');
+		$this->addOption('site-root', null, InputOption::VALUE_REQUIRED);
+		$this->addOption('script-dir', null, InputOption::VALUE_REQUIRED);
+		$this->addOption('node-name', null, InputOption::VALUE_REQUIRED);
 		// @todo(stig): add a verbose flag
 	}
 
@@ -58,6 +65,7 @@ class ListenCommand extends BaseCommand {
 		$this->handler = new SQSHandler($this->profile, $this->region, $this->log);
 		$this->siteRoot = $this->getDirectoryFromInput($input, 'site-root');
 		$this->scriptDir = $this->getDirectoryFromInput($input, 'script-dir');
+		$this->nodeName = $input->getOption('node-name');
 
 		while(true) {
 			foreach($this->getQueues($input) as $queueName) {
@@ -77,7 +85,7 @@ class ListenCommand extends BaseCommand {
 	 */
 	protected function getDirectoryFromInput(InputInterface $input, $argumentName) {
 
-		$dirName = trim($input->getArgument($argumentName));
+		$dirName = trim($input->getOption($argumentName));
 
 		if(!$dirName) {
 			$errorMsg = sprintf("Missing '%s' argument!", $argumentName);
