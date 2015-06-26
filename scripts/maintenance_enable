@@ -1,18 +1,18 @@
 #!/bin/bash -e
 
-CURRENT_HTACCESS="/var/www/mysite/.htaccess"
-ORIGINAL_HTACCESS="/var/www/mysite/.htaccess_original"
-CUSTOM_MAINTENANCE_SOURCE_PATH="/var/www/mysite/assets/error-503.html"
-MAINTENANCE_HTML_PATH="/var/www/mysite/maintenance.html"
-MAINTENANCE_HTACCESS_PATH="/var/www/mysite/maintenance.htaccess"
+CURRENT_HTACCESS="/var/www/mysite/www/.htaccess"
+ORIGINAL_HTACCESS="/var/www/mysite/www/.htaccess_original"
+CUSTOM_MAINTENANCE_SOURCE_PATH="/var/www/mysite/www/assets/error-503.html"
+MAINTENANCE_HTML_PATH="/var/www/mysite/www/maintenance.html"
+MAINTENANCE_HTACCESS_PATH="/var/www/mysite/www/maintenance.htaccess"
 
 if [ ! -f $CURRENT_HTACCESS ]; then
-	echo "Skipping. Missing htaccess file\n"
+	echo "Skipping. Missing htaccess file"
 	exit 1
 fi
 
 if [ -f $ORIGINAL_HTACCESS ]; then
-	echo "Skipping. Maintenance is already enabled\n"
+	echo "Skipping. Maintenance is already enabled"
 	exit 1;
 fi
 
@@ -24,15 +24,15 @@ else
 	wget \
 		--no-verbose \
 		-O $MAINTENANCE_HTML_PATH \
-		https://raw.githubusercontent.com/silverstripe/deploynaut/master/maintenance.htaccess.template
+		https://raw.githubusercontent.com/silverstripe/deploynaut/master/maintenance.html.template
 
 	RETVAL=$?
 	if [ "$RETVAL" != "0" ]; then
-		echo "Failed to download default maintenance html page\n"
+		echo "Failed to download default maintenance html page"
 		rm $MAINTENANCE_HTML_PATH
 		exit $RETVAL
 	fi
-end
+fi
 
 # copy down the htaccess template from deploynaut github. If wget fails, cleanup anything that might have been downloaded
 wget \
@@ -42,7 +42,7 @@ wget \
 
 RETVAL=$?
 if [ "$RETVAL" != "0" ]; then
-	echo "Failed to download maintenance htaccess\n"
+	echo "Failed to download maintenance htaccess"
 	rm $MAINTENANCE_HTACCESS_PATH
 	exit $RETVAL
 fi
