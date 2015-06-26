@@ -1,0 +1,14 @@
+#!/bin/bash -e
+
+CURRENT_HTACCESS="/var/www/mysite/.htaccess"
+ORIGINAL_HTACCESS="/var/www/mysite/.htaccess_original"
+MAINTENANCE_HTML_PATH="/var/www/mysite/maintenance.html"
+
+if [ -f $ORIGINAL_HTACCESS ]; then
+	echo "Skipping. Maintenance is already disabled\n"
+	exit 1;
+fi
+
+# move the original htaccess back into place
+mv $ORIGINAL_HTACCESS $CURRENT_HTACCESS
+rm $MAINTENANCE_HTML_PATH
