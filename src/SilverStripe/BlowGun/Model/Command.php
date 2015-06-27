@@ -42,7 +42,7 @@ class Command {
 		try {
 			$this->execProcess($status);
 		} catch(\Exception $e) {
-			$status->Failed();
+			$status->failed();
 			$status->addError($e->getMessage());
 		}
 		return $status;
