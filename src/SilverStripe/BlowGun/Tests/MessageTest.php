@@ -1,10 +1,9 @@
 <?php
 
-use Aws\Sqs\SqsClient;
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
-use SilverStripe\BlowGun\Credentials\BlowGunCredentials;
 use SilverStripe\BlowGun\Model\Message;
+use SilverStripe\BlowGun\Tests\Helpers\MockHandler;
 
 class MessageTest extends PHPUnit_Framework_TestCase {
 
@@ -60,52 +59,5 @@ class MessageTest extends PHPUnit_Framework_TestCase {
 	}
 }
 
-class MockHandler extends SilverStripe\BlowGun\Service\SQSHandler {
 
-	public function __construct($profile, $region, Logger $logger) {
-		parent::__construct($profile, $region, $logger);
-		$this->client = new MockClient();
 
-	}
-
-	public function getOrCreateQueueURL($queueName) {
-
-	}
-
-	public function send(Message $message) {
-
-	}
-
-	public function delete(Message $message) {
-
-	}
-
-	public function addVisibilityTimeout(Message $message, $seconds) {
-
-	}
-
-}
-
-class MockClient extends SqsClient {
-
-	public function __construct() {
-
-	}
-
-	public function getOrCreateQueueURL($name) {
-		return 'https://aws.southeast/'.$name;
-	}
-
-	public function receiveMessage(array $args = []) {
-
-		return [
-			'Messages' => [
-				[
-					'MessageId' => 'MessageId',
-				    'ReceiptHandle' => '',
-				    'Body' => 'msg body'
-				],
-			],
-		];
-	}
-}
