@@ -1,30 +1,35 @@
 #!/bin/bash -e
 
-CURRENT_HTACCESS="/var/www/mysite/www/.htaccess"
-ORIGINAL_HTACCESS="/var/www/mysite/www/.htaccess_original"
-CUSTOM_MAINTENANCE_SOURCE_PATH="/var/www/mysite/www/assets/error-503.html"
-MAINTENANCE_HTML_PATH="/var/www/mysite/www/maintenance.html"
-MAINTENANCE_HTACCESS_PATH="/var/www/mysite/www/maintenance.htaccess"
+if [ -z "$webroot" ]; then
+	echo "\$webroot not defined"
+	exit 2
+fi
 
-if [ ! -f $CURRENT_HTACCESS ]; then
+CURRENT_HTACCESS="${webroot}/.htaccess"
+ORIGINAL_HTACCESS="${webroot}/.htaccess_original"
+CUSTOM_MAINTENANCE_SOURCE_PATH="${webroot}/assets/error-503.html"
+MAINTENANCE_HTML_PATH="${webroot}/maintenance.html"
+MAINTENANCE_HTACCESS_PATH="${webroot}/maintenance.htaccess"
+
+if [ ! -f ${CURRENT_HTACCESS} ]; then
 	echo "Skipping. Missing htaccess file"
 	exit 1
 fi
 
-if [ -f $ORIGINAL_HTACCESS ]; then
+if [ -f ${ORIGINAL_HTACCESS} ]; then
 	echo "Skipping. Maintenance is already enabled"
 	exit 1;
 fi
 
 # use custom error page if available
-if [ -f $CUSTOM_MAINTENANCE_SOURCE_PATH ]; then
-	cp $CUSTOM_MAINTENANCE_SOURCE_PATH $MAINTENANCE_HTML_PATH
+if [ -f ${CUSTOM_MAINTENANCE_SOURCE_PATH} ]; then
+	cp ${CUSTOM_MAINTENANCE_SOURCE_PATH} ${MAINTENANCE_HTML_PATH}
 else
+
+	# Delete the maintenance html if it's lying around
+	rm -f ${MAINTENANCE_HTML_PATH}
 	# copy down default maintenance html from deploynaut github. If wget fails, cleanup anything that might have been downloaded
-	wget \
-		--no-verbose \
-		-O $MAINTENANCE_HTML_PATH \
-		https://raw.githubusercontent.com/silverstripe/deploynaut/master/maintenance.html.template
+	curl --silent --show-error -o ${MAINTENANCE_HTML_PATH} "https://raw.githubusercontent.com/silverstripe/deploynaut/master/maintenance.html.template"
 
 	RETVAL=$?
 	if [ "$RETVAL" != "0" ]; then
@@ -34,19 +39,18 @@ else
 	fi
 fi
 
+## Delete the maintenance .htaccess if it's lying around
+rm -f ${MAINTENANCE_HTACCESS_PATH}
 # copy down the htaccess template from deploynaut github. If wget fails, cleanup anything that might have been downloaded
-wget \
-	--no-verbose \
-	-O $MAINTENANCE_HTACCESS_PATH \
-	https://raw.githubusercontent.com/silverstripe/deploynaut/master/maintenance.htaccess.template
+curl --silent --show-error -o ${MAINTENANCE_HTACCESS_PATH} "https://raw.githubusercontent.com/silverstripe/deploynaut/master/maintenance.htaccess.template"
 
 RETVAL=$?
 if [ "$RETVAL" != "0" ]; then
 	echo "Failed to download maintenance htaccess"
-	rm $MAINTENANCE_HTACCESS_PATH
-	exit $RETVAL
+	rm ${MAINTENANCE_HTACCESS_PATH}
+	exit ${RETVAL}
 fi
 
 # move the current htaccess into an original file so we can disable this later
-mv $CURRENT_HTACCESS $ORIGINAL_HTACCESS
-mv $MAINTENANCE_HTACCESS_PATH $CURRENT_HTACCESS
+mv ${CURRENT_HTACCESS} ${ORIGINAL_HTACCESS}
+mv ${MAINTENANCE_HTACCESS_PATH} ${CURRENT_HTACCESS}

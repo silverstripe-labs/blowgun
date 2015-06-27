@@ -1,9 +1,15 @@
 #!/bin/bash -e
 
-CURRENT_HTACCESS="/var/www/mysite/www/.htaccess"
-ORIGINAL_HTACCESS="/var/www/mysite/www/.htaccess_original"
-MAINTENANCE_HTML_PATH="/var/www/mysite/www/maintenance.html"
+if [ -z "$webroot" ]; then
+	echo "\$webroot not defined"
+	exit 2
+fi
+
+CURRENT_HTACCESS="${webroot}/.htaccess"
+ORIGINAL_HTACCESS="${webroot}/.htaccess_original"
+MAINTENANCE_HTML_PATH="${webroot}/maintenance.html"
 
 # move the original htaccess back into place
-mv $ORIGINAL_HTACCESS $CURRENT_HTACCESS
-rm $MAINTENANCE_HTML_PATH
+
+mv ${ORIGINAL_HTACCESS} ${CURRENT_HTACCESS}
+rm -f ${MAINTENANCE_HTML_PATH}

@@ -34,6 +34,9 @@ class SQSHandler {
 	 */
 	protected $logger;
 
+	/**
+	 * @param Credentials $credentials
+	 */
 	public static function setCredentials(Credentials $credentials) {
 		self::$credentials = $credentials;
 	}

@@ -67,10 +67,12 @@ class ListenCommand extends BaseCommand {
 		$this->scriptDir = $this->getDirectoryFromInput($input, 'script-dir');
 		$this->nodeName = $input->getOption('node-name');
 
-		$this->log->addNotice("BlowGun started");
+		$queues = $this->getQueues($input);
+
+		$this->log->addNotice("BlowGun started and listening on ". implode(', ',$queues));
 
 		while(true) {
-			foreach($this->getQueues($input) as $queueName) {
+			foreach($queues as $queueName) {
 				$messages = $this->handler->fetch($queueName, 10);
 				foreach($messages as $message) {
 					$this->handleMessage($message);
@@ -126,7 +128,7 @@ class ListenCommand extends BaseCommand {
 		$instanceQueue = sprintf(
 			"%s-instance-%s",
 			$queueName,
-			preg_replace("/[^a-zA-Z0-9_-]/", '-', trim(gethostname()))
+			preg_replace("/[^a-zA-Z0-9_-]/", '-', trim($this->nodeName))
 		);
 
 		$queues = [];
