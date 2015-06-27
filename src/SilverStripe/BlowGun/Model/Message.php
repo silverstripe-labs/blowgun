@@ -256,13 +256,13 @@ class Message {
 
 	/**
 	 * @param string $queueName
-	 * @param string $id
+	 * @param string $responseId
 	 *
 	 * @return Message
 	 */
-	public function setRespondTo($queueName, $id) {
+	public function setRespondTo($queueName, $responseId) {
 		$this->respondTo = $queueName;
-		$this->responseId = $id;
+		$this->responseId = $responseId;
 		return $this;
 	}
 
