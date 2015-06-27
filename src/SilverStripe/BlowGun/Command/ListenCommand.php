@@ -1,6 +1,7 @@
 <?php
 namespace SilverStripe\BlowGun\Command;
 
+use Aws\Sqs\Exception\SqsException;
 use SilverStripe\BlowGun\Model\Command;
 use SilverStripe\BlowGun\Model\Message;
 use SilverStripe\BlowGun\Model\Status;
@@ -38,7 +39,7 @@ class ListenCommand extends BaseCommand {
 	/**
 	 * @var SQSHandler
 	 */
-	protected $handler = null;
+	protected $queueService = null;
 
 	protected function configure() {
 		parent::configure();
@@ -62,7 +63,7 @@ class ListenCommand extends BaseCommand {
 
 		parent::execute($input, $output);
 
-		$this->handler = new SQSHandler($this->profile, $this->region, $this->log);
+		$this->queueService = new SQSHandler($this->profile, $this->region, $this->log);
 		$this->siteRoot = $this->getDirectoryFromInput($input, 'site-root');
 		$this->scriptDir = $this->getDirectoryFromInput($input, 'script-dir');
 		$this->nodeName = $input->getOption('node-name');
@@ -73,7 +74,15 @@ class ListenCommand extends BaseCommand {
 
 		while(true) {
 			foreach($queues as $queueName) {
-				$messages = $this->handler->fetch($queueName, 10);
+				try {
+					$messages = $this->queueService->fetch($queueName, 10);
+				} catch(SqsException $e) {
+					$this->log->addError($e->getMessage(), [$queueName]);
+					sleep(30);
+				} catch(\Exception $e) {
+					$this->log->addError($e->getMessage(), [$queueName]);
+					sleep(30);
+				}
 				foreach($messages as $message) {
 					$this->handleMessage($message);
 				}
@@ -148,7 +157,7 @@ class ListenCommand extends BaseCommand {
 		// a status oldMessage, so just log it and delete the oldMessage
 		if($message->getType() == 'status') {
 			$this->logNotice($message->getMessage(), $message);
-			$this->handler->delete($message);
+			$this->queueService->delete($message);
 			$this->logNotice('Deleted message', $message);
 			return;
 		}
@@ -179,7 +188,7 @@ class ListenCommand extends BaseCommand {
 	 */
 	protected function sendResponse(Message $oldMessage, Status $status) {
 
-		$responseMsg = new Message($oldMessage->getRespondTo(), $this->handler);
+		$responseMsg = new Message($oldMessage->getRespondTo(), $this->queueService);
 		$responseMsg->setType('status');
 		$responseMsg->setResponseId($oldMessage->getResponseId());
 		$responseMsg->setSuccess($status->isSuccessful());
