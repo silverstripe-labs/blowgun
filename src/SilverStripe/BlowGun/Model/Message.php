@@ -154,7 +154,7 @@ class Message {
 	/**
 	 * @return bool
 	 */
-	public function getSuccess() {
+	public function isSuccess() {
 		return $this->success;
 	}
 
