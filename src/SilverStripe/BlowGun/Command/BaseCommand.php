@@ -92,22 +92,6 @@ abstract class BaseCommand extends Command {
 			throw new \RuntimeException("Missing value for <region> and could not be determined from profile");
 		}
 
-		// Assume a role and set the clientFactory to use the temporary credentials for
-		// that role. http://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html
-		if($input->getOption('role-arn')) {
-			throw new \Exception("not implemented yet");
-			$this->roleArn = $input->getOption('role-arn');
-			$stsClient = $this->clientFactory->getStsClient($this->profile);
-			$result = $stsClient->assumeRole(
-				[
-					'RoleArn' => $this->roleArn,
-					'RoleSessionName' => 'blowgun',
-					'DurationSeconds' => 3600,
-				]
-			);
-			// override the default credentials with the temporary one
-			$this->clientFactory->setCredentials($stsClient->createCredentials($result));
-		}
 	}
 
 	/**
