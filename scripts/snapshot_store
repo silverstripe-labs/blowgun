@@ -13,12 +13,56 @@ SNAPSHOT_DIR="/var/www/mysite/snapshots"
 TIMESTAMP=`date +"%Y-%d-%m_%H-%M-%S"`
 LOCAL_SSPAK=${SNAPSHOT_DIR}/${TIMESTAMP}.sspak
 REMOTE_SSPAK="s3://${bucket}/${bucket_folder}/${TIMESTAMP}.sspak"
+WORKSPACE=`mktemp -d`
 
+# get the path to the script folder
+pushd `dirname $0` > /dev/null
+SCRIPT_DIR=`pwd`
+popd > /dev/null
+
+# Cleanup from previous runs
 rm -rf ${SNAPSHOT_DIR}
 mkdir -p ${SNAPSHOT_DIR}
 
 echo "Running sspak save with mode '${mode}'"
-/usr/local/bin/sspak save ${webroot} ${LOCAL_SSPAK} --${mode}
+
+# Create an empty tar file that stuff will be appended to
+tar --create --file=$LOCAL_SSPAK --files-from=/dev/null
+
+# Normalise the current working directory
+
+if [ "$mode" != "db" ]; then
+	cd ${webroot}
+	GZIP=-1 tar --exclude "_*" -czf $WORKSPACE/assets.tar.gz assets
+	cd $WORKSPACE && tar --append --file=$LOCAL_SSPAK assets.tar.gz
+	rm assets.tar.gz
+fi
+
+# Normalise the current working directory
+cd $SCRIPT_DIR
+
+if [ "$mode" != "assets" ]; then
+	# Generate Database details
+	$SCRIPT_DIR/ss-sniffer.php $webroot > $WORKSPACE/sniffed
+
+	# Load the database details into the ENV
+	. /$WORKSPACE/sniffed
+	if [ -n "$DB_PASSWORD" ]; then
+		mysqldump --skip-opt --add-drop-table --extended-insert --create-options \
+		--quick --set-charset --default-character-set=utf8 \
+		-h $DB_SERVER -u $DB_USERNAME -p"$DB_PASSWORD" $DB_DATABASE | gzip > $WORKSPACE/database.sql.gz
+	else
+		mysqldump --skip-opt --add-drop-table --extended-insert --create-options \
+		--quick --set-charset --default-character-set=utf8 \
+		-h $DB_SERVER -u $DB_USERNAME $DB_DATABASE | gzip > $WORKSPACE/database.sql.gz
+	fi
+	cd $WORKSPACE
+	tar --append --file=${LOCAL_SSPAK} database.sql.gz
+	rm database.sql.gz
+fi
+
+cd $SCRIPT_DIR
+rm -r $WORKSPACE
 
 echo "Saving snapshot"
 /usr/local/bin/aws s3 --only-show-errors cp ${LOCAL_SSPAK} ${REMOTE_SSPAK}
@@ -27,4 +71,3 @@ echo "Cleaning up"
 rm -rf ${SNAPSHOT_DIR}
 
 echo "sspak_url=${REMOTE_SSPAK}"
-
