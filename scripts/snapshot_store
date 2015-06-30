@@ -29,7 +29,7 @@ popd > /dev/null
 rm -rf ${SNAPSHOT_DIR}
 mkdir -p ${SNAPSHOT_DIR}
 
-echo "Running sspak save with mode '${mode}'"
+echo "Creating a sspak with mode '${mode}'"
 
 # Create an empty tar file that stuff will be appended to
 tar --create --file=$LOCAL_SSPAK --files-from=/dev/null
