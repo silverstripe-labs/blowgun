@@ -1,0 +1,11 @@
+{
+	"type": "myscript",
+	"success": null,
+	"arguments": {
+		"mode": null,
+		"bucket": "mybucket",
+		"bucket_folder": "my-bucket-folder"
+	},
+	"respond_to": "responses-queue",
+	"response_id": "5588e20d53cbc9.58799949"
+}

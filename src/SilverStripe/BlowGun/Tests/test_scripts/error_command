@@ -1,0 +1,8 @@
+#!/bin/bash
+
+echo "I will fail"
+
+
+>&2 echo "command failed"
+
+exit 1
