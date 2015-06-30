@@ -34,8 +34,6 @@ echo "Creating a sspak with mode '${mode}'"
 # Create an empty tar file that stuff will be appended to
 tar --create --file=$LOCAL_SSPAK --files-from=/dev/null
 
-# Normalise the current working directory
-
 if [ "$mode" != "db" ]; then
 	cd ${webroot}
 	GZIP=-1 tar --exclude "_*" -czf $WORKSPACE/assets.tar.gz assets
@@ -43,7 +41,6 @@ if [ "$mode" != "db" ]; then
 	rm assets.tar.gz
 fi
 
-# Normalise the current working directory
 cd $SCRIPT_DIR
 
 if [ "$mode" != "assets" ]; then
