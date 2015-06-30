@@ -13,7 +13,12 @@ SNAPSHOT_DIR="/var/www/mysite/snapshots"
 TIMESTAMP=`date +"%Y-%d-%m_%H-%M-%S"`
 LOCAL_SSPAK=${SNAPSHOT_DIR}/${TIMESTAMP}.sspak
 REMOTE_SSPAK="s3://${bucket}/${bucket_folder}/${TIMESTAMP}.sspak"
-WORKSPACE=`mktemp -d`
+OS=`uname`
+if [ "$OS" == "Darwin" ]; then
+	WORKSPACE=`mktemp -d -t sspak`
+else
+	WORKSPACE=`mktemp -d`
+fi
 
 # get the path to the script folder
 pushd `dirname $0` > /dev/null
@@ -61,7 +66,6 @@ if [ "$mode" != "assets" ]; then
 	rm database.sql.gz
 fi
 
-cd $SCRIPT_DIR
 rm -r $WORKSPACE
 
 echo "Saving snapshot"
