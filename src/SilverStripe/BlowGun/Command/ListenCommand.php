@@ -75,15 +75,15 @@ class ListenCommand extends BaseCommand {
 			foreach($queues as $queueName) {
 				try {
 					$messages = $this->queueService->fetch($queueName, 10);
+					foreach($messages as $message) {
+						$this->handleMessage($message);
+					}
 				} catch(SqsException $e) {
 					$this->log->addError($e->getMessage(), [$queueName]);
 					sleep(30);
 				} catch(\Exception $e) {
 					$this->log->addError($e->getMessage(), [$queueName]);
 					sleep(30);
-				}
-				foreach($messages as $message) {
-					$this->handleMessage($message);
 				}
 			}
 		}
