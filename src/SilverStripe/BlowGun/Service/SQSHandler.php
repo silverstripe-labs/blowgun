@@ -165,9 +165,7 @@ class SQSHandler {
 	 * @param Message $message
 	 */
 	public function delete(Message $message) {
-		if(!($message->getReceiptHandle())) {
-			throw new \RuntimeException("Can't delete message without ReceiptHandle():\n" . $message->getAsJson());
-		}
+		$this->validateReceiptHandle($message);
 		$queueURL = $this->getOrCreateQueueURL($message->getQueue());
 		$this->client->deleteMessage(
 			[
@@ -193,10 +191,7 @@ class SQSHandler {
 	 * @param int $seconds
 	 */
 	public function addVisibilityTimeout(Message $message, $seconds) {
-
-		if(!($message->getReceiptHandle())) {
-			throw new \RuntimeException("Can't delete message without ReceiptHandle:\n" . $message->getAsJson());
-		}
+		$this->validateReceiptHandle($message);
 		$queueURL = $this->getOrCreateQueueURL($message->getQueue());
 		$this->client->changeMessageVisibility(
 			[
@@ -298,5 +293,14 @@ class SQSHandler {
 				]
 			]
 		);
+	}
+
+	/**
+	 * @param Message $message
+	 */
+	private function validateReceiptHandle(Message $message) {
+		if($message->getReceiptHandle() == '') {
+			throw new \RuntimeException("Can't delete message without ReceiptHandle():\n" . $message->getAsJson());
+		}
 	}
 }

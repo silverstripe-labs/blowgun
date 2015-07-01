@@ -98,25 +98,20 @@ class ListenCommand extends BaseCommand {
 	protected function getDirectoryFromInput(InputInterface $input, $argumentName) {
 
 		$dirName = trim($input->getOption($argumentName));
+		$errorMsg = '';
 
 		if(!$dirName) {
 			$errorMsg = sprintf("Missing '%s' argument!", $argumentName);
-			$this->log->addCritical($errorMsg);
-			throw new \RuntimeException($errorMsg);
-		}
-
-		if(!file_exists($dirName)) {
+		} else if(!file_exists($dirName)) {
 			$errorMsg = sprintf("Directory '%s' does not exist!", $dirName);
-			$this->log->addCritical($errorMsg);
-			throw new \RuntimeException($errorMsg);
-		}
-
-		if(!is_dir($dirName)) {
+		} else if(!is_dir($dirName)) {
 			$errorMsg = sprintf("'%s' isn't a directory!", $argumentName);
+		}
+
+		if($errorMsg != '') {
 			$this->log->addCritical($errorMsg);
 			throw new \RuntimeException($errorMsg);
 		}
-
 		return $dirName;
 	}
 
