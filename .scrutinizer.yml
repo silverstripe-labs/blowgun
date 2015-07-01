@@ -2,3 +2,11 @@ inherit: true
 filter:
   excluded_paths:
     - vendor/*
+build:
+  tests:
+    override:
+      -
+        command: './vendor/bin/phpunit --coverage-clover=coverage --configuration phpunit.xml.dist '
+        coverage:
+          file: 'coverage'
+          format: 'php-clover'
