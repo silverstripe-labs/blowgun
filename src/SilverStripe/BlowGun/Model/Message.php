@@ -90,7 +90,7 @@ class Message {
 		// then parse the body into this object
 		$body = json_decode($rawMessage['Body'], true);
 		$error = $this->jsonErrorMessage();
-		if($error) {
+		if($error != '') {
 			throw new MessageLoadingException($error);
 		}
 
@@ -301,6 +301,7 @@ class Message {
 	 * @return string
 	 */
 	public function getAsJson() {
+		$rawBody = [];
 		$rawBody['type'] = $this->type;
 		$rawBody['success'] = $this->success;
 
@@ -327,36 +328,29 @@ class Message {
 	 * Return last JSON error message or null.
 	 * Unfortunately json_last_error_msg only available in PHP>=5.5.
 	 *
-	 * @return null|string Message
+	 * @return string Message
 	 */
 	protected function jsonErrorMessage() {
 		$error = json_last_error();
 		if(!$error) {
-			return null;
+			return '';
 		}
 
 		switch($error) {
 			case JSON_ERROR_NONE:
 				return 'No errors';
-				break;
 			case JSON_ERROR_DEPTH:
 				return 'Maximum stack depth exceeded';
-				break;
 			case JSON_ERROR_STATE_MISMATCH:
 				return 'Underflow or the modes mismatch';
-				break;
 			case JSON_ERROR_CTRL_CHAR:
 				return 'Unexpected control character found';
-				break;
 			case JSON_ERROR_SYNTAX:
 				return 'Syntax error, malformed JSON';
-				break;
 			case JSON_ERROR_UTF8:
 				return 'Malformed UTF-8 characters, possibly incorrectly encoded';
-				break;
 			default:
 				return 'Unknown error';
-				break;
 		}
 	}
 }
