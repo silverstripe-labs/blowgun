@@ -94,27 +94,25 @@ class Message {
 			throw new MessageLoadingException($error);
 		}
 
-		// type is critical for a Message
 		if(!(isset($body['type']) && is_string($body['type']))) {
 			throw new MessageLoadingException('No \'type\' field in recieved message');
 		}
 		$this->type = $body['type'];
 
 		if(isset($body['success'])) {
-			$this->success = $body['success'];
+			$this->setSuccess($body['success']);
 		}
 		if(isset($body['message'])) {
-			$this->message = $body['message'];
+			$this->setMessage($body['message']);
 		}
 		if(isset($body['error_message'])) {
-			$this->errorMessage = $body['error_message'];
+			$this->setErrorMessage($body['error_message']);
 		}
-
-		// Chuck all the arguments into this class
 		if(isset($body['arguments']) && is_array($body['arguments'])) {
-			$this->arguments = $body['arguments'];
+			foreach($body['arguments'] as $key => $value) {
+				$this->setArgument($key, $value);
+			}
 		}
-
 		if(isset($body['respond_to'])) {
 			$this->respondTo = $body['respond_to'];
 		}
