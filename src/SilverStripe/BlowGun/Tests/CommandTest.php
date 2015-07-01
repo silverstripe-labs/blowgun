@@ -40,7 +40,6 @@ class CommandTest extends \PHPUnit_Framework_TestCase {
 		$command = new Command($msg, __DIR__ . '/test_scripts', 'siteroot');
 		$status = $command->run();
 		$this->assertFalse($status->isSuccessful());
-		$this->assertContains('No such file', $status->getErrors()[0]);
 	}
 
 	public function testRunProcessScriptErro() {
