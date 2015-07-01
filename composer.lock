@@ -170,12 +170,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/monolog.git",
-                "reference": "cc145b85fe1d1093f0bfa2d1dffb341904a1762b"
+                "reference": "ceeb33f5213d8ef383bb8f1d46a5922b4666c8aa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/cc145b85fe1d1093f0bfa2d1dffb341904a1762b",
-                "reference": "cc145b85fe1d1093f0bfa2d1dffb341904a1762b",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/ceeb33f5213d8ef383bb8f1d46a5922b4666c8aa",
+                "reference": "ceeb33f5213d8ef383bb8f1d46a5922b4666c8aa",
                 "shasum": ""
             },
             "require": {
@@ -238,7 +238,7 @@
                 "logging",
                 "psr-3"
             ],
-            "time": "2015-06-22 17:09:57"
+            "time": "2015-06-30 22:26:19"
         },
         {
             "name": "psr/log",
