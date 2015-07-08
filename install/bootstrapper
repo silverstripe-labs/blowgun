@@ -33,7 +33,7 @@ if(!empty($stacks['Stacks'][0])) {
 
 	$data[PHP_EOL."## Stack Tags"] = '';
 	foreach($stack['Tags'] as $tags) {
-		$data[str_replace(':', '_', $tags['Key'])] = $tags['Value'];
+		$data[str_replace(array(':', '-'), '_', $tags['Key'])] = $tags['Value'];
 	}
 
 	$data[PHP_EOL."## Stack Parameters"] = '';
@@ -51,7 +51,7 @@ $instanceTags = json_decode($rawInstanceTags, true);
 if(!empty($instanceTags['Tags'])) {
 	$data[PHP_EOL."## Instance tags"] = '';
 	foreach($instanceTags['Tags'] as $tag) {
-		$data['TAG_' . str_replace(':', '_', $tag['Key'])] = $tag['Value'];
+		$data['TAG_' . str_replace(array(':', '-'), '_', $tag['Key'])] = $tag['Value'];
 	}
 }
 
