@@ -23,7 +23,6 @@ $data['zone'] = curl('placement/availability-zone/');
 $data['availability_zone'] = substr($data['zone'], -1);
 $data['region'] = $region = substr($data['zone'], 0, -1);
 $data['stack_id'] = $stack_id = shell('/usr/local/bin/aws ec2 describe-tags --region ' . $region . ' --filters Name=resource-id,Values=' . $instance_id . ' Name=key,Values=aws:cloudformation:stack-id --query \'Tags[0].Value\' --output text');
-$data['instance_name'] = shell('/usr/local/bin/aws ec2 describe-tags --region ' . $region . ' --filters Name=resource-id,Values=$instance_id Name=key,Values=aws:cloudformation:stack-id --query \'Tags[0].Value\' --output text');
 
 $rawStacks = shell('/usr/local/bin/aws --region ' . $region . ' cloudformation describe-stacks --stack-name ' . $stack_id);
 $stacks = json_decode($rawStacks, true);
@@ -47,6 +46,15 @@ if(!empty($stacks['Stacks'][0])) {
 		$data[$output['OutputKey']] = $output['OutputValue'];
 	}
 }
+$rawInstanceTags = shell('/usr/local/bin/aws ec2 describe-tags --region ' . $region . ' --filters Name=resource-id,Values=' . $instance_id);
+$instanceTags = json_decode($rawInstanceTags, true);
+if(!empty($instanceTags['Tags'])) {
+	$data[PHP_EOL."## Instance tags"] = '';
+	foreach($instanceTags['Tags'] as $tag) {
+		$data[str_replace(':', '_', $tags['Key'])] = $tags['Value'];
+	}
+}
+
 foreach($data as $key => $value) {
 	if($value) {
 		printf("%s=\"%s\"".PHP_EOL, strtoupper($key), $value);
