@@ -51,7 +51,7 @@ $instanceTags = json_decode($rawInstanceTags, true);
 if(!empty($instanceTags['Tags'])) {
 	$data[PHP_EOL."## Instance tags"] = '';
 	foreach($instanceTags['Tags'] as $tag) {
-		$data[str_replace(':', '_', $tags['Key'])] = $tags['Value'];
+		$data['TAG_' . str_replace(':', '_', $tags['Key'])] = $tags['Value'];
 	}
 }
 
