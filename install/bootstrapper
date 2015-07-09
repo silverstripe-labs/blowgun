@@ -42,8 +42,10 @@ if(!empty($stacks['Stacks'][0])) {
 	}
 
 	$data[PHP_EOL."## Stack Outputs"] = '';
-	foreach($stack['Outputs'] as $output) {
-		$data[$output['OutputKey']] = $output['OutputValue'];
+	if(!empty($stack['Outputs'])) {
+		foreach($stack['Outputs'] as $output) {
+			$data[$output['OutputKey']] = $output['OutputValue'];
+		}
 	}
 }
 $rawInstanceTags = shell('/usr/local/bin/aws ec2 describe-tags --region ' . $region . ' --filters Name=resource-id,Values=' . $instance_id);
