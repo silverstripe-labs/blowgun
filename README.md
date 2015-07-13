@@ -1,9 +1,8 @@
 # Blowgun
 
-[![Build Status](https://travis-ci.org/silverstripe-labs/blowgun.svg?branch=master)](https://travis-ci.org/silverstripe-labs/blowgun)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/silverstripe-labs/blowgun/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/silverstripe-labs/blowgun/?branch=master)
-[![Code Coverage](https://scrutinizer-ci.com/g/silverstripe-labs/blowgun/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/silverstripe-labs/blowgun/?branch=master)
-[![Build Status](https://scrutinizer-ci.com/g/silverstripe-labs/blowgun/badges/build.png?b=master)](https://scrutinizer-ci.com/g/silverstripe-labs/blowgun/build-status/master)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/silverstripe-platform/blowgun/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/silverstripe-platform/blowgun/?branch=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/silverstripe-platform/blowgun/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/silverstripe-platform/blowgun/?branch=master)
+[![Build Status](https://scrutinizer-ci.com/g/silverstripe-platform/blowgun/badges/build.png?b=master)](https://scrutinizer-ci.com/g/silverstripe-platform/blowgun/build-status/master)
 
 
 Blowgun is a library and tool to send and receive messages from AWS SQS. It's
