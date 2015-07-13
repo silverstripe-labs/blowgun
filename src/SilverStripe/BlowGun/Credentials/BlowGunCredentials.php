@@ -33,7 +33,7 @@ class BlowGunCredentials extends Credentials {
 		$credentialData = [];
 
 		// try with the default profile
-		if(!$profile) {
+		if(!$profile === null) {
 			$profile = self::defaultProfile();
 		}
 
