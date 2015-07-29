@@ -24,11 +24,6 @@ class ListenCommand extends BaseCommand {
 	/**
 	 * @var string
 	 */
-	protected $siteRoot = '';
-
-	/**
-	 * @var string
-	 */
 	protected $scriptDir = '';
 
 	/**
@@ -47,7 +42,6 @@ class ListenCommand extends BaseCommand {
 		$this->addArgument('cluster');
 		$this->addArgument('stack');
 		$this->addArgument('env');
-		$this->addOption('site-root', null, InputOption::VALUE_REQUIRED);
 		$this->addOption('script-dir', null, InputOption::VALUE_REQUIRED);
 		$this->addOption('node-name', null, InputOption::VALUE_REQUIRED);
 	}
@@ -63,7 +57,6 @@ class ListenCommand extends BaseCommand {
 		parent::execute($input, $output);
 
 		$this->queueService = new SQSHandler($this->profile, $this->region, $this->log);
-		$this->siteRoot = $this->getDirectoryFromInput($input, 'site-root');
 		$this->scriptDir = $this->getDirectoryFromInput($input, 'script-dir');
 		$this->nodeName = $input->getOption('node-name');
 
@@ -157,7 +150,7 @@ class ListenCommand extends BaseCommand {
 		}
 
 		$this->logNotice(sprintf('Running job %s', $message->getType()), $message);
-		$command = new Command($message, $this->scriptDir, $this->siteRoot);
+		$command = new Command($message, $this->scriptDir);
 		$status = $command->run();
 
 		foreach($status->getErrors() as $error) {

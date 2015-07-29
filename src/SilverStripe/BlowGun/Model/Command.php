@@ -24,12 +24,10 @@ class Command {
 	/**
 	 * @param Message $message
 	 * @param string $scriptDir
-	 * @param string $siteRoot
 	 */
-	public function __construct(Message $message, $scriptDir, $siteRoot) {
+	public function __construct(Message $message, $scriptDir) {
 		$this->message = $message;
 		$this->scriptDir = $scriptDir;
-		$this->siteRoot = $siteRoot;
 		$this->process = $this->getProcess();
 	}
 
@@ -67,7 +65,6 @@ class Command {
 				$builder->setEnv($name, $value);
 			}
 		}
-		$builder->setEnv('webroot', $this->siteRoot);
 		$process = $builder->getProcess();
 		$process->setTimeout(3600);
 		return $process;
