@@ -116,7 +116,6 @@ class SQSHandler {
 		if($waitTimeSeconds > 20) {
 			$waitTimeSeconds = 20;
 		}
-		$this->logNotice('checking queue '.$queueURL);
 		$result = $this->client->receiveMessage(
 			[
 				'QueueUrl' => $queueURL,
@@ -128,7 +127,6 @@ class SQSHandler {
 			]
 		);
 		if(!count($result['Messages'])) {
-			$this->logNotice('no messages in queue '.$queueURL);
 			return [];
 		}
 		$messages = [];

@@ -70,7 +70,7 @@ class ListenCommand extends BaseCommand {
 
 		$queues = $this->getQueues($input);
 
-		$this->log->addNotice("BlowGun started and listening on ". implode(', ',$queues));
+		$this->log->addNotice("BlowGun started ", $queues);
 
 		while(true) {
 			foreach($queues as $queueName) {
