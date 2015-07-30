@@ -87,6 +87,8 @@ class ListenCommand extends BaseCommand {
 					$this->handleMessage($message);
 				}
 			}
+			// In case the SQSClient times out or get stale
+			$this->queueService = new SQSHandler($this->profile, $this->region, $this->log);
 		}
 	}
 
