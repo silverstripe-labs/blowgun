@@ -256,6 +256,9 @@ class SQSHandler {
 				'QueueName' => 'dead-messages'
 			]
 		);
+		if(!isset($result['QueueUrl'])) {
+			throw new \RuntimeException("Cant create queue with name 'dead-messages'");
+		}
 		return $result['QueueUrl'];
 	}
 
