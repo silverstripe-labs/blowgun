@@ -3,6 +3,8 @@
 # Provides:          blowgun
 # Required-Start:    $remote_fs $syslog bootstrapper
 # Required-Stop:     $remote_fs $syslog
+# Should-Start:      $all
+# Should-Stop:       $all
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Starting blowgun as a daemoon
