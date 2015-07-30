@@ -72,6 +72,22 @@ class SQSHandler {
 		);
 	}
 
+	/**
+	 * Replace the default SQSClient with another one
+	 *
+	 * @param SqsClient $client
+	 */
+	public function setClient(SqsClient $client) {
+		$this->client = $client;
+	}
+
+	/**
+	 * Get a list of queues that start with a $queuePrefix
+	 *
+	 * @param string $queuePrefix
+	 *
+	 * @return array
+	 */
 	public function listQueues($queuePrefix) {
 		$result = $this->client->listQueues(['QueueNamePrefix' => $queuePrefix]);
 		if(!isset($result['QueueUrls'])) {
