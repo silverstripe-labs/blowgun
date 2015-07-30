@@ -181,6 +181,14 @@ class SQSHandler {
 	}
 
 	/**
+	 * @param string $message
+	 *
+	 */
+	public function logNotice($message) {
+		$this->logger->addNotice($message, []);
+	}
+
+	/**
 	 * Increase the timeout before this message gets put back into
 	 * the queue.
 	 *
@@ -208,6 +216,8 @@ class SQSHandler {
 	 * @return string
 	 */
 	protected function createQueueWithDefaultAttributes($queueName) {
+
+		$this->logNotice('Creating queue '.$queueName);
 		$result = $this->client->createQueue(
 			[
 				'QueueName' => trim($queueName),
@@ -251,6 +261,7 @@ class SQSHandler {
 	 * @return string
 	 */
 	protected function createDeadLetterQueue() {
+		$this->logNotice('Creating queue "dead-messages"');
 		$result = $this->client->createQueue(
 			[
 				'QueueName' => 'dead-messages'
@@ -284,6 +295,7 @@ class SQSHandler {
 	 * @param string $deadQueueArn
 	 */
 	protected function setDefaultQueueAttributes($queueURL, $deadQueueArn) {
+		$this->logNotice('Set default queue attributes on '.$queueURL);
 		$this->client->setQueueAttributes(
 			[
 				'QueueUrl' => $queueURL,
