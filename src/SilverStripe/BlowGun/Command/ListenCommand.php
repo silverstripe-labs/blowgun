@@ -75,7 +75,7 @@ class ListenCommand extends BaseCommand {
 		while(true) {
 			foreach($queues as $queueName) {
 				try {
-					$messages = $this->queueService->fetch($queueName, 10);
+					$messages = $this->queueService->fetch($queueName);
 				} catch(SqsException $e) {
 					$this->log->addError($e->getMessage(), [$queueName]);
 					sleep(30);
@@ -86,6 +86,7 @@ class ListenCommand extends BaseCommand {
 				foreach($messages as $message) {
 					$this->handleMessage($message);
 				}
+				sleep(10);
 			}
 			// In case the SQSClient times out or get stale
 			$this->queueService = new SQSHandler($this->profile, $this->region, $this->log);

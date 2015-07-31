@@ -123,21 +123,16 @@ class SQSHandler {
 	 * Will return one single message in an array
 	 *
 	 * @param string $queueName
-	 * @param int $waitTimeSeconds - max 20 seconds
 	 *
 	 * @return \SilverStripe\BlowGun\Model\Message[]
 	 */
-	public function fetch($queueName, $waitTimeSeconds = 20) {
+	public function fetch($queueName) {
 		$queueURL = $this->getOrCreateQueueURL($queueName);
-		if($waitTimeSeconds > 20) {
-			$waitTimeSeconds = 20;
-		}
 		$this->logNotice('checking queue '.$queueURL);
 		$result = $this->client->receiveMessage(
 			[
 				'QueueUrl' => $queueURL,
 				'MaxNumberOfMessages' => 1,
-				'WaitTimeSeconds' => $waitTimeSeconds,
 				'AttributeNames' => [
 					'All',
 				],
