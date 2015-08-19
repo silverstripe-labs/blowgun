@@ -128,7 +128,6 @@ class SQSHandler {
 	 */
 	public function fetch($queueName) {
 		$queueURL = $this->getOrCreateQueueURL($queueName);
-		$this->logNotice('checking queue '.$queueURL);
 		$result = $this->client->receiveMessage(
 			[
 				'QueueUrl' => $queueURL,

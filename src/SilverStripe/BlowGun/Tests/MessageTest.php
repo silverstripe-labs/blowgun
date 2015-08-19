@@ -57,7 +57,5 @@ class MessageTest extends PHPUnit_Framework_TestCase {
 		$content = file_get_contents(__DIR__ . '/example_message/' . $name . '.json');
 		return $content;
 	}
+
 }
-
-
-
