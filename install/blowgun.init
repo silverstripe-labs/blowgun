@@ -34,7 +34,7 @@ INSTANCE_ID="undefined"
 # Read configuration variable file if it is present
 [ -r /etc/default/bootstrapper ] && . /etc/default/bootstrapper
 
-DAEMON_ARGS="listen --region ${REGION} ${CLUSTER} ${STACK} ${ENVIRONMENT} --node-name ${INSTANCE_ID} --site-root /var/www/mysite/www --script-dir /opt/blowgun"
+DAEMON_ARGS="listen --region ${REGION} ${CLUSTER} ${STACK} ${ENVIRONMENT} --node-name ${INSTANCE_ID} --script-dir /opt/blowgun"
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh
