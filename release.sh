@@ -1,58 +1,63 @@
 #!/bin/sh -e
 
-BUILDDIR=./.build
-LATEST_TAG=`git describe --abbrev=0 --tags`
+if [ -z "$1" ]; then
+	echo "Please pass a version tag as an argument"
+	exit 1
+fi
+
+BUILDDIR=/tmp/blowgun-builds
+VERSION=$1
+BUILDNAME="blowgun-${VERSION}"
+OUTPUTFILE="${BUILDNAME}.deb"
 S3_LOCATION=ss-packages/blowgun/
-
 DPKG_DEB=`which dpkg-deb` || (echo "dpkg-deb is not installed. 'brew install dpkg' is your friend." && exit 2)
-PHAR_COMPOSER=`which phar-composer` || (echo "phar-composer isnt installed. see https://github.com/clue/phar-composer#install" && exit 2)
+COMPOSER=`which composer` || (echo "composer is not installed. See https://getcomposer.org/" && exit 2)
+PHAR_COMPOSER=`which phar-composer` || (echo "phar-composer is not installed. See https://github.com/clue/phar-composer#install" && exit 2)
 
-rm -rf ${BUILDDIR} && mkdir -p ${BUILDDIR}
+if [ -d "${BUILDDIR}" ]; then
+	rm -rf ${BUILDDIR}
+fi
 
-phar-composer build .
+mkdir -p ${BUILDDIR}
+cd $BUILDDIR
+
+if [ -d "${VERSION}" ]; then
+	rm -rf ${VERSION}
+fi
+
+mkdir -p ${VERSION}
+cd ${VERSION}
+
+git clone git@github.com:silverstripe-platform/blowgun.git .
+git checkout ${VERSION}
+$COMPOSER install --no-dev --prefer-dist
+$PHAR_COMPOSER build .
 chmod a+x blowgun.phar
-mv blowgun.phar .build/blowgun
 
-cp -R scripts ${BUILDDIR}
-cd ${BUILDDIR}
+mkdir -p ${BUILDNAME}
+mkdir -p ${BUILDNAME}/usr/local/bin
+cp blowgun.phar ${BUILDNAME}/usr/local/bin/blowgun
+cp install/bootstrapper ${BUILDNAME}/usr/local/bin/bootstrapper
+chmod +x ${BUILDNAME}/usr/local/bin/bootstrapper
 
-printf "\nCompressing scripts\n"
+mkdir -p ${BUILDNAME}/etc/init.d/
+cp install/blowgun.init ${BUILDNAME}/etc/init.d/blowgun
+cp install/bootstrapper.init ${BUILDNAME}/etc/init.d/bootstrapper
+chmod 0755 ${BUILDNAME}/etc/init.d/blowgun
+chmod 0755 ${BUILDNAME}/etc/init.d/bootstrapper
 
-tar -zcf scripts.tar.gz scripts
-rm -rf scripts
-
-VERSION="blowgun_latest"
-mkdir $VERSION
-
-mkdir -p $VERSION/usr/local/bin
-cp blowgun $VERSION/usr/local/bin/blowgun
-cp ../install/bootstrapper $VERSION/usr/local/bin/bootstrapper
-chmod +x $VERSION/usr/local/bin/bootstrapper
-
-mkdir -p $VERSION/etc/init.d/
-cp ../install/blowgun.init $VERSION/etc/init.d/blowgun
-cp ../install/bootstrapper.init $VERSION/etc/init.d/bootstrapper
-chmod 0755 $VERSION/etc/init.d/blowgun
-chmod 0755 $VERSION/etc/init.d/bootstrapper
-
-mkdir -p $VERSION/opt/blowgun
-cp ../scripts/* $VERSION/opt/blowgun/
+mkdir -p ${BUILDNAME}/opt/blowgun
 
 # setup control stuff
-mkdir $VERSION/DEBIAN
-cp ../install/control $VERSION/DEBIAN/control
-cp ../install/postinst $VERSION/DEBIAN/postinst
-chmod 0775 $VERSION/DEBIAN/postinst
-$DPKG_DEB --build $VERSION
+mkdir ${BUILDNAME}/DEBIAN
+cp install/control ${BUILDNAME}/DEBIAN/control
+cp install/postinst ${BUILDNAME}/DEBIAN/postinst
+chmod 0775 ${BUILDNAME}/DEBIAN/postinst
+$DPKG_DEB --build ${BUILDNAME}
 
-rm -rf $VERSION
+printf "\nUploading ${OUTPUTFILE}\n"
 
-printf "\nUploading\n"
-
-for file in *
-do
-	echo " + ${file} --> https://s3-ap-southeast-2.amazonaws.com/${S3_LOCATION}${file}"
-	aws s3 cp --profile silverstripe --only-show-errors --acl "public-read" "$file" "s3://${S3_LOCATION}" || break
-done
+echo " + ${OUTPUTFILE} --> https://s3-ap-southeast-2.amazonaws.com/${S3_LOCATION}${OUTPUTFILE}"
+aws s3 cp --profile silverstripe --only-show-errors --acl "public-read" "${OUTPUTFILE}" "s3://${S3_LOCATION}" || break
 
 rm -rf ${BUILDDIR}
