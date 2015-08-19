@@ -28,7 +28,7 @@ class CommandTest extends \PHPUnit_Framework_TestCase {
 	public function testRunProcessIsSuccessful() {
 		$msg = new Message('test-queue', $this->handler);
 		$msg->setType('echo_command');
-		$command = new Command($msg, __DIR__ . '/test_scripts', 'siteroot');
+		$command = new Command($msg, __DIR__ . '/test_scripts');
 		$status = $command->run();
 		$this->assertTrue($status->isSuccessful());
 		$this->assertEquals('Hello world', $status->getNotices()[0]);
@@ -37,7 +37,7 @@ class CommandTest extends \PHPUnit_Framework_TestCase {
 	public function testRunProcessScriptNotFound() {
 		$msg = new Message('test-queue', $this->handler);
 		$msg->setType('dont_exists');
-		$command = new Command($msg, __DIR__ . '/test_scripts', 'siteroot');
+		$command = new Command($msg, __DIR__ . '/test_scripts');
 		$status = $command->run();
 		$this->assertFalse($status->isSuccessful());
 		$this->assertContains('No such file', $status->getErrors()[0]);
@@ -46,7 +46,7 @@ class CommandTest extends \PHPUnit_Framework_TestCase {
 	public function testRunProcessScriptError() {
 		$msg = new Message('test-queue', $this->handler);
 		$msg->setType('error_command');
-		$command = new Command($msg, __DIR__ . '/test_scripts', 'siteroot');
+		$command = new Command($msg, __DIR__ . '/test_scripts');
 		$status = $command->run();
 		$this->assertFalse($status->isSuccessful());
 		$this->assertEquals('I will fail', $status->getNotices()[0]);
@@ -58,7 +58,7 @@ class CommandTest extends \PHPUnit_Framework_TestCase {
 		$msg->setType('arg_command');
 
 		$msg->setArgument('arg1', 'value1');
-		$command = new Command($msg, __DIR__ . '/test_scripts', 'siteroot');
+		$command = new Command($msg, __DIR__ . '/test_scripts');
 		$status = $command->run();
 		$this->assertTrue($status->isSuccessful());
 
