@@ -4,7 +4,7 @@ namespace SilverStripe\BlowGun\Service;
 use Aws\Common\Credentials\Credentials;
 use Aws\Sqs\Exception\SqsException;
 use Aws\Sqs\SqsClient;
-use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 use SilverStripe\BlowGun\Exceptions\MessageLoadingException;
 use SilverStripe\BlowGun\Model\Message;
 
@@ -37,7 +37,7 @@ class SQSHandler {
 	protected $client = null;
 
 	/**
-	 * @var Logger
+	 * @var \Psr\Log\LoggerInterface
 	 */
 	protected $logger;
 
@@ -51,9 +51,9 @@ class SQSHandler {
 	/**
 	 * @param string $profile
 	 * @param string $region
-	 * @param Logger $logger
+	 * @param \Psr\Log\LoggerInterface $logger
 	 */
-	public function __construct($profile, $region, Logger $logger) {
+	public function __construct($profile, $region, \Psr\Log\LoggerInterface $logger) {
 
 		$this->logger = $logger;
 
@@ -188,7 +188,7 @@ class SQSHandler {
 	 * @param Message $message
 	 */
 	public function logError($errorMsg, Message $message) {
-		$this->logger->addError($errorMsg, [$message->getMessageId(), $message->getQueue()]);
+		$this->logger->error($errorMsg, [$message->getMessageId(), $message->getQueue()]);
 	}
 
 	/**
@@ -196,7 +196,7 @@ class SQSHandler {
 	 *
 	 */
 	public function logNotice($message) {
-		$this->logger->addNotice($message, []);
+		$this->logger->notice($message, []);
 	}
 
 	/**
