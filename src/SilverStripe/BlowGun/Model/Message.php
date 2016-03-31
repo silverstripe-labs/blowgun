@@ -124,7 +124,7 @@ class Message {
 	}
 
 	/**
-	 * @param $seconds
+	 * @param integer $seconds
 	 */
 	public function increaseVisibility($seconds) {
 		$this->handler->addVisibilityTimeout($this, $seconds);
@@ -194,7 +194,7 @@ class Message {
 	}
 
 	/**
-	 * @param $msg
+	 * @param string $msg
 	 */
 	public function setErrorMessage($msg) {
 		$this->errorMessage = $msg;
@@ -238,7 +238,7 @@ class Message {
 	}
 
 	/**
-	 * @param $type
+	 * @param string $type
 	 *
 	 * @return Message
 	 */

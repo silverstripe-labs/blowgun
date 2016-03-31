@@ -1,0 +1,12 @@
+machine:
+  php:
+    version: 5.4.37
+
+dependencies:
+  pre:
+    - sed -i 's/^;//' ~/.phpenv/versions/$(phpenv global)/etc/conf.d/xdebug.ini
+
+## Customize test commands
+test:
+  override:
+    - ./vendor/bin/phpunit --log-junit $CIRCLE_TEST_REPORTS/junit.xml --coverage-html $CIRCLE_ARTIFACTS/coverage
