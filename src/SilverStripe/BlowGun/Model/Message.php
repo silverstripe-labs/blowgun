@@ -145,6 +145,22 @@ class Message {
 	}
 
 	/**
+	 * @param $errorMsg
+	 * @param Message $message
+	 */
+	public function logError($errorMsg) {
+		$this->handler->logError($errorMsg, $this);
+	}
+
+	/**
+	 * @param string $message
+	 *
+	 */
+	public function logNotice($errorMsg) {
+		$this->handler->logNotice($errorMsg, $this);
+	}
+
+	/**
 	 * @return string
 	 */
 	public function getQueue() {

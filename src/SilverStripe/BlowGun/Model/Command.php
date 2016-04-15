@@ -7,9 +7,9 @@ use Symfony\Component\Process\ProcessBuilder;
 class Command {
 
 	/**
-	 * SQS queues by default set message visibility to 30 seconds
+	 * SQS visibility period for updates
 	 */
-	const MSG_DEFAULT_VISIBILITY = 30;
+	const MSG_UPDATE_VISIBILITY_TIMEOUT = 30;
 
 	/**
 	 * @var Message
@@ -102,11 +102,14 @@ class Command {
 		// timeout so that the message doesn't get put back into the queue
 		// while this instance of the worker is still working on it.
 		$previousTime = time();
-		$timeout = (self::MSG_DEFAULT_VISIBILITY - 10);
+		$timeout = (self::MSG_UPDATE_VISIBILITY_TIMEOUT - 10);
 		while($this->process->isRunning()) {
 			$now = time();
 			if($previousTime + $timeout < $now) {
-				$this->message->increaseVisibility($timeout);
+				$this->message->increaseVisibility(self::MSG_UPDATE_VISIBILITY_TIMEOUT);
+				$this->message->logNotice(
+					sprintf('Increased visibility by %ss', self::MSG_UPDATE_VISIBILITY_TIMEOUT)
+				);
 				$previousTime = $now;
 			}
 			$this->process->checkTimeout();

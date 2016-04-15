@@ -183,7 +183,7 @@ class SQSHandler {
 	}
 
 	/**
-	 * @param $errorMsg
+	 * @param string $errorMsg
 	 * @param Message $message
 	 */
 	public function logError($errorMsg, Message $message) {
@@ -191,11 +191,16 @@ class SQSHandler {
 	}
 
 	/**
-	 * @param string $message
+	 * @param string $errorMsg
+	 * @param Message $message
 	 *
 	 */
-	public function logNotice($message) {
-		$this->logger->notice($message, []);
+	public function logNotice($errorMsg, Message $message = null) {
+		if ($message) {
+			$this->logger->notice($errorMsg, [$message->getMessageId(), $message->getQueue()]);
+		} else {
+			$this->logger->notice($errorMsg, []);
+		}
 	}
 
 	/**
