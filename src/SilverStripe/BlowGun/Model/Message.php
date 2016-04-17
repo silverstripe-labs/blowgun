@@ -130,9 +130,6 @@ class Message {
 		$this->handler->addVisibilityTimeout($this, $seconds);
 	}
 
-	/**
-	 *
-	 */
 	public function send() {
 		$this->handler->send($this);
 	}
@@ -145,16 +142,14 @@ class Message {
 	}
 
 	/**
-	 * @param $errorMsg
-	 * @param Message $message
+	 * @param string $errorMsg
 	 */
 	public function logError($errorMsg) {
 		$this->handler->logError($errorMsg, $this);
 	}
 
 	/**
-	 * @param string $message
-	 *
+	 * @param string $errorMsg
 	 */
 	public function logNotice($errorMsg) {
 		$this->handler->logNotice($errorMsg, $this);
@@ -188,7 +183,6 @@ class Message {
 	 * @return string
 	 */
 	public function getMessage() {
-
 		return $this->message;
 	}
 
