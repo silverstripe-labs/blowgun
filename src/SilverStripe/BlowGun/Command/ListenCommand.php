@@ -65,6 +65,8 @@ class ListenCommand extends BaseCommand {
 
 		$this->log->addNotice("BlowGun started ", $queues);
 
+		$messages = [];
+
 		while(true) {
 			foreach($queues as $queueName) {
 				try {
