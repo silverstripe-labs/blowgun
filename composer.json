@@ -4,8 +4,8 @@
 		"php": ">=5.4.0",
 		"psr/log": "1.0.0",
 		"aws/aws-sdk-php": "2.*@stable",
-		"symfony/process": "2.7.1",
-		"symfony/console": "2.7.1",
+		"symfony/process": "2.7.*",
+		"symfony/console": "2.7.*",
 		"monolog/monolog": "^1.13@dev"
 	},
 	"require-dev": {
