@@ -8,9 +8,8 @@ fi
 BUILDDIR=/tmp/blowgun-builds
 VERSION=$1
 BUILDNAME="blowgun-${VERSION}"
-OUTPUTFILE="${BUILDNAME}.deb"
+OUTPUTFILE="${BUILDNAME}.phar"
 S3_LOCATION=ss-packages/blowgun/
-DPKG_DEB=`which dpkg-deb` || (echo "dpkg-deb is not installed. 'brew install dpkg' is your friend." && exit 2)
 COMPOSER=`which composer` || (echo "composer is not installed. See https://getcomposer.org/" && exit 2)
 PHAR_COMPOSER=`which phar-composer` || (echo "phar-composer is not installed. See https://github.com/clue/phar-composer#install" && exit 2)
 
@@ -33,27 +32,7 @@ git checkout ${VERSION}
 $COMPOSER install --no-dev --prefer-dist
 $PHAR_COMPOSER build .
 chmod a+x blowgun.phar
-
-mkdir -p ${BUILDNAME}
-mkdir -p ${BUILDNAME}/usr/local/bin
-cp blowgun.phar ${BUILDNAME}/usr/local/bin/blowgun
-cp install/bootstrapper ${BUILDNAME}/usr/local/bin/bootstrapper
-chmod +x ${BUILDNAME}/usr/local/bin/bootstrapper
-
-mkdir -p ${BUILDNAME}/etc/init.d/
-cp install/blowgun.init ${BUILDNAME}/etc/init.d/blowgun
-cp install/bootstrapper.init ${BUILDNAME}/etc/init.d/bootstrapper
-chmod 0755 ${BUILDNAME}/etc/init.d/blowgun
-chmod 0755 ${BUILDNAME}/etc/init.d/bootstrapper
-
-mkdir -p ${BUILDNAME}/opt/blowgun
-
-# setup control stuff
-mkdir ${BUILDNAME}/DEBIAN
-cp install/control ${BUILDNAME}/DEBIAN/control
-cp install/postinst ${BUILDNAME}/DEBIAN/postinst
-chmod 0775 ${BUILDNAME}/DEBIAN/postinst
-$DPKG_DEB --build ${BUILDNAME}
+mv blowgun.phar $OUTPUTFILE
 
 printf "\nUploading ${OUTPUTFILE}\n"
 
