@@ -1,8 +1,0 @@
-Website: platform.silverstripe.com
-Maintainer: cloudbusters <cloudbusters@gmail.com>
-Name: blowgun
-Package: blowgun
-Section: blowgun
-Version: 1.0.0
-Architecture: all
-Description: Blowgun / PHP / SQS / SSP

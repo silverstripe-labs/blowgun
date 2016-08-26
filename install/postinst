@@ -1,3 +1,0 @@
-#!/bin/sh
-update-rc.d bootstrapper defaults
-update-rc.d blowgun defaults
