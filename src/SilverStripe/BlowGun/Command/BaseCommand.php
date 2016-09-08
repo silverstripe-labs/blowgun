@@ -59,7 +59,7 @@ abstract class BaseCommand extends Command {
 		$streamLogger = new StreamHandler(STDOUT);
 		$streamFormatter = new LineFormatter("[%datetime%] %channel%.%level_name%: %message% %context%\n");
 		$streamLogger->setFormatter($streamFormatter);
-		$this->log->pushHandler($streamLogger );
+		$this->log->pushHandler($streamLogger);
 	}
 
 	/**

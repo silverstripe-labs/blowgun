@@ -160,8 +160,10 @@ class ListenCommand extends BaseCommand {
 			return;
 		}
 
+		// @todo send a starting message to responseQueue
 		$this->logNotice(sprintf('Running job %s', $message->getType()), $message);
 		$command = new Command($message, $this->scriptDir);
+		// @todo every x second send a status update to the response queue
 		$status = $command->run();
 
 		foreach($status->getErrors() as $error) {
@@ -173,6 +175,7 @@ class ListenCommand extends BaseCommand {
 		}
 
 		if($message->getRespondTo()) {
+			// @todo send a success/failed update to the response queue
 			$this->sendResponse($message, $status);
 			$this->logNotice('Sent response', $message);
 		}
