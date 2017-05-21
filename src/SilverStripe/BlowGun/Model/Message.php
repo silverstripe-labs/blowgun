@@ -223,6 +223,14 @@ class Message {
 	}
 
 	/**
+	 * @return string
+	 */
+	public function getUser() {
+                $runAs = $this->getArgument('runas');
+                return $runAs ?: 'www-data';
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getArguments() {
