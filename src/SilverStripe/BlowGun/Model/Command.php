@@ -56,7 +56,14 @@ class Command {
 			realpath($this->scriptDir),
 			basename($this->message->getType())
 		);
-		$builder = new ProcessBuilder([$scriptPath]);
+
+		$user = $this->message->getUser();
+		if ($user==='root') {
+			$builder = new ProcessBuilder([$scriptPath]);
+		} else {
+			$builder = new ProcessBuilder(['/usr/bin/sudo', '-u', $user, $scriptPath]);
+		}
+
 		// Inject the arguments into the ENV for the script, it's the easiest
 		// way to get key=value params into it since there is other good option
 		// for // supplying named parameters for a bash script
@@ -75,6 +82,7 @@ class Command {
 	 *
 	 */
 	protected function execProcess(Status $status) {
+		$this->message->logNotice(sprintf('Running as %s', $this->message->getUser()));
 
 		// Run the command and capture data from stdout
 		$this->process->start(
