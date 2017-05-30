@@ -3,7 +3,6 @@ namespace SilverStripe\BlowGun\Command;
 
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
-use Monolog\Handler\SyslogHandler;
 use Monolog\Logger;
 use SilverStripe\BlowGun\Credentials\BlowGunCredentials;
 use Symfony\Component\Console\Command\Command;
@@ -51,13 +50,8 @@ abstract class BaseCommand extends Command {
 		$this->setCredentials($input);
 		$this->log = new Logger('blowgun');
 
-		$sysLogger = new SyslogHandler('blowgun');
-		$syslogFormatter = new LineFormatter("%level_name% - %message% %context%\n");
-		$sysLogger->setFormatter($syslogFormatter);
-		$this->log->pushHandler($sysLogger);
-
 		$streamLogger = new StreamHandler(STDOUT);
-		$streamFormatter = new LineFormatter("[%datetime%] %channel%.%level_name%: %message% %context%\n");
+		$streamFormatter = new LineFormatter("%level_name% - %message% %context%\n");
 		$streamLogger->setFormatter($streamFormatter);
 		$this->log->pushHandler($streamLogger );
 	}
