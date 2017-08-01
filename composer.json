@@ -1,15 +1,15 @@
 {
 	"name": "silverstripe/blowgun",
 	"require": {
-		"php": ">=5.4.0",
-		"psr/log": "1.0.0",
-		"aws/aws-sdk-php": "2.*@stable",
-		"symfony/process": "2.7.*",
-		"symfony/console": "2.7.*",
-		"monolog/monolog": "^1.13@dev"
+		"php": ">=5.6",
+		"psr/log": "^1.0.0",
+		"aws/aws-sdk-php": "^2.8",
+		"symfony/process": "^2.7",
+		"symfony/console": "^2.7",
+		"monolog/monolog": "^1.13"
 	},
 	"require-dev": {
-		"phpunit/phpunit": "4.0.*"
+		"phpunit/phpunit": "~4.8"
 	},
 	"autoload": {
 		"psr-4": {
