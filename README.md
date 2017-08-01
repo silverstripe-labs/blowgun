@@ -5,7 +5,7 @@
 [![Build Status](https://scrutinizer-ci.com/g/silverstripeltd/blowgun/badges/build.png?b=master&s=973b15e0fa07bb0772ec6c3c4b4f77e6a806d889)](https://scrutinizer-ci.com/g/silverstripeltd/blowgun/build-status/master)
 
 Blowgun is a library and tool to send and receive messages from AWS SQS. It's
-mean to be deployed to an AWS web instance and fetch messages that 'commands' 
+mean to be deployed to an AWS web instance and fetch messages that 'commands'
 the instance to run jobs or tasks.
 
 ## Developing blowgun
