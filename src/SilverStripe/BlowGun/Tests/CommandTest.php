@@ -43,7 +43,13 @@ class CommandTest extends \PHPUnit_Framework_TestCase
         $command = new Command($msg, __DIR__.'/test_scripts');
         $status = $command->run();
         $this->assertFalse($status->isSuccessful());
-        $this->assertContains('No such file', $status->getErrors()[0]);
+        if (PHP_OS_FAMILY == "Linux") {
+            $this->assertContains('not found', $status->getErrors()[0]);
+        } elseif (PHP_OS_FAMILY == 'Darwin') {
+            $this->assertContains('No such file', $status->getErrors()[0]);
+        } else {
+            $this->markTestSkipped('unknown OS '.PHP_OS);
+        }
     }
 
     public function testRunProcessScriptError()

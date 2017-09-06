@@ -11,10 +11,12 @@
          syntaxCheck="false">
     <testsuites>
         <testsuite name="Blowgun Test Suite">
-            <directory suffix=".php">./src/SilverStripe/BlowGun/tests/</directory>
+            <directory suffix=".php">./src/SilverStripe/BlowGun/Tests/</directory>
         </testsuite>
     </testsuites>
-    <whitelist processUncoveredFilesFromWhitelist="true">
-        <directory suffix=".php">/src</directory>
-    </whitelist>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">./src</directory>
+        </whitelist>
+    </filter>
 </phpunit>
