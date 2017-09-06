@@ -1,372 +1,403 @@
 <?php
+
 namespace SilverStripe\BlowGun\Model;
 
 use SilverStripe\BlowGun\Exceptions\MessageLoadingException;
 use SilverStripe\BlowGun\Service\SQSHandler;
 
-class Message {
+class Message
+{
+    /**
+     * @var array
+     */
+    protected $rawMessage = [];
 
-	/**
-	 * @var array
-	 */
-	protected $rawMessage = [];
+    /**
+     * @var string
+     */
+    protected $errorMessage = '';
 
-	/**
-	 * @var string
-	 */
-	protected $errorMessage = '';
+    /**
+     * @var string
+     */
+    protected $type = '';
 
-	/**
-	 * @var string
-	 */
-	protected $type = '';
+    /**
+     * @var string
+     */
+    protected $respondTo;
 
-	/**
-	 * @var string
-	 */
-	protected $respondTo;
+    /**
+     * @var string
+     */
+    protected $responseId;
 
-	/**
-	 * @var string
-	 */
-	protected $responseId;
+    /**
+     * @var string
+     */
+    protected $receiptHandle;
 
-	/**
-	 * @var string
-	 */
-	protected $receiptHandle;
+    /**
+     * @var string
+     */
+    protected $messageId;
 
-	/**
-	 * @var string
-	 */
-	protected $messageId;
+    /**
+     * @var array
+     */
+    protected $arguments;
 
-	/**
-	 * @var array
-	 */
-	protected $arguments;
+    /**
+     * @var bool
+     */
+    protected $success;
 
-	/**
-	 * @var bool
-	 */
-	protected $success;
+    /**
+     * @var string
+     */
+    protected $message;
 
-	/**
-	 * @var string
-	 */
-	protected $message;
+    /**
+     * @var SQSHandler
+     */
+    protected $handler;
 
-	/**
-	 * @var SQSHandler
-	 */
-	protected $handler;
+    /**
+     * @var string
+     */
+    private $queue;
 
-	/**
-	 * @var string
-	 */
-	private $queue;
+    /**
+     * @param string     $fromQueue
+     * @param SQSHandler $handler
+     */
+    public function __construct($fromQueue, SQSHandler $handler)
+    {
+        $this->queue = $fromQueue;
+        $this->handler = $handler;
+    }
 
-	/**
-	 * @param string $fromQueue
-	 * @param SQSHandler $handler
-	 */
-	public function __construct($fromQueue, SQSHandler $handler) {
+    /**
+     * @param array $rawMessage
+     *
+     * @throws MessageLoadingException
+     */
+    public function load(array $rawMessage)
+    {
+        // get all the SQS.Message properties
+        $this->messageId = $rawMessage['MessageId'];
+        $this->receiptHandle = $rawMessage['ReceiptHandle'];
 
-		$this->queue = $fromQueue;
-		$this->handler = $handler;
-	}
+        // then parse the body into this object
+        $body = json_decode($rawMessage['Body'], true);
+        $error = $this->jsonErrorMessage();
+        if ($error) {
+            throw new MessageLoadingException($error);
+        }
 
-	/**
-	 * @param array $rawMessage
-	 *
-	 * @throws MessageLoadingException
-	 */
-	public function load(array $rawMessage) {
+        // type is critical for a Message
+        if (!(isset($body['type']) && is_string($body['type']))) {
+            throw new MessageLoadingException('No \'type\' field in recieved message');
+        }
+        $this->type = $body['type'];
 
-		// get all the SQS.Message properties
-		$this->messageId = $rawMessage['MessageId'];
-		$this->receiptHandle = $rawMessage['ReceiptHandle'];
+        if (isset($body['success'])) {
+            $this->success = $body['success'];
+        }
+        if (isset($body['message'])) {
+            $this->message = $body['message'];
+        }
+        if (isset($body['error_message'])) {
+            $this->errorMessage = $body['error_message'];
+        }
 
-		// then parse the body into this object
-		$body = json_decode($rawMessage['Body'], true);
-		$error = $this->jsonErrorMessage();
-		if($error) {
-			throw new MessageLoadingException($error);
-		}
+        // Chuck all the arguments into this class
+        if (isset($body['arguments']) && is_array($body['arguments'])) {
+            $this->arguments = $body['arguments'];
+        }
 
-		// type is critical for a Message
-		if(!(isset($body['type']) && is_string($body['type']))) {
-			throw new MessageLoadingException('No \'type\' field in recieved message');
-		}
-		$this->type = $body['type'];
+        if (isset($body['respond_to'])) {
+            $this->respondTo = $body['respond_to'];
+        }
+        if (isset($body['response_id'])) {
+            $this->responseId = $body['response_id'];
+        }
+    }
 
-		if(isset($body['success'])) {
-			$this->success = $body['success'];
-		}
-		if(isset($body['message'])) {
-			$this->message = $body['message'];
-		}
-		if(isset($body['error_message'])) {
-			$this->errorMessage = $body['error_message'];
-		}
+    /**
+     * @param int $seconds
+     */
+    public function increaseVisibility($seconds)
+    {
+        $this->handler->addVisibilityTimeout($this, $seconds);
+    }
 
-		// Chuck all the arguments into this class
-		if(isset($body['arguments']) && is_array($body['arguments'])) {
-			$this->arguments = $body['arguments'];
-		}
+    public function send()
+    {
+        $this->handler->send($this);
+    }
 
-		if(isset($body['respond_to'])) {
-			$this->respondTo = $body['respond_to'];
-		}
-		if(isset($body['response_id'])) {
-			$this->responseId = $body['response_id'];
-		}
-	}
+    public function deleteFromQueue()
+    {
+        $this->handler->delete($this);
+    }
 
-	/**
-	 * @param integer $seconds
-	 */
-	public function increaseVisibility($seconds) {
-		$this->handler->addVisibilityTimeout($this, $seconds);
-	}
+    /**
+     * @param string $errorMsg
+     */
+    public function logError($errorMsg)
+    {
+        $this->handler->logError($errorMsg, $this);
+    }
 
-	public function send() {
-		$this->handler->send($this);
-	}
+    /**
+     * @param string $errorMsg
+     */
+    public function logNotice($errorMsg)
+    {
+        $this->handler->logNotice($errorMsg, $this);
+    }
 
-	/**
-	 *
-	 */
-	public function deleteFromQueue() {
-		$this->handler->delete($this);
-	}
+    /**
+     * @return string
+     */
+    public function getQueue()
+    {
+        return $this->queue;
+    }
 
-	/**
-	 * @param string $errorMsg
-	 */
-	public function logError($errorMsg) {
-		$this->handler->logError($errorMsg, $this);
-	}
+    /**
+     * @return bool
+     */
+    public function isSuccess()
+    {
+        return $this->success;
+    }
 
-	/**
-	 * @param string $errorMsg
-	 */
-	public function logNotice($errorMsg) {
-		$this->handler->logNotice($errorMsg, $this);
-	}
+    /**
+     * @param bool $success
+     *
+     * @return Message
+     */
+    public function setSuccess($success)
+    {
+        $this->success = $success;
 
-	/**
-	 * @return string
-	 */
-	public function getQueue() {
-		return $this->queue;
-	}
+        return $this;
+    }
 
-	/**
-	 * @return bool
-	 */
-	public function isSuccess() {
-		return $this->success;
-	}
+    /**
+     * @return string
+     */
+    public function getMessage()
+    {
+        return $this->message;
+    }
 
-	/**
-	 * @param bool $success
-	 *
-	 * @return Message
-	 */
-	public function setSuccess($success) {
-		$this->success = $success;
-		return $this;
-	}
+    /**
+     * @param string $message
+     *
+     * @return Message
+     */
+    public function setMessage($message)
+    {
+        $this->message = $message;
 
-	/**
-	 * @return string
-	 */
-	public function getMessage() {
-		return $this->message;
-	}
+        return $this;
+    }
 
-	/**
-	 * @param string $message
-	 *
-	 * @return Message
-	 */
-	public function setMessage($message) {
-		$this->message = $message;
-		return $this;
-	}
+    /**
+     * @return string
+     */
+    public function getErrorMessage()
+    {
+        return $this->errorMessage;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getErrorMessage() {
-		return $this->errorMessage;
-	}
+    /**
+     * @param string $msg
+     */
+    public function setErrorMessage($msg)
+    {
+        $this->errorMessage = $msg;
+    }
 
-	/**
-	 * @param string $msg
-	 */
-	public function setErrorMessage($msg) {
-		$this->errorMessage = $msg;
-	}
+    /**
+     * @param $name
+     *
+     * @return string|null
+     */
+    public function getArgument($name)
+    {
+        if (isset($this->arguments[$name])) {
+            return $this->arguments[$name];
+        }
 
-	/**
-	 * @param $name
-	 *
-	 * @return string|null
-	 */
-	public function getArgument($name) {
-		if(isset($this->arguments[$name])) {
-			return $this->arguments[$name];
-		}
-		return null;
-	}
+        return null;
+    }
 
-	/**
-	 * @return array
-	 */
-	public function getArguments() {
-		return $this->arguments;
-	}
+    /**
+     * @return array
+     */
+    public function getArguments()
+    {
+        return $this->arguments;
+    }
 
-	/**
-	 * @param $name
-	 * @param $value
-	 *
-	 * @return Message
-	 */
-	public function setArgument($name, $value) {
-		$this->arguments[$name] = $value;
-		return $this;
-	}
+    /**
+     * @param $name
+     * @param $value
+     *
+     * @return Message
+     */
+    public function setArgument($name, $value)
+    {
+        $this->arguments[$name] = $value;
 
-	/**
-	 * @return string
-	 */
-	public function getType() {
-		return $this->type;
-	}
+        return $this;
+    }
 
-	/**
-	 * @param string $type
-	 *
-	 * @return Message
-	 */
-	public function setType($type) {
-		$this->type = $type;
-		return $this;
-	}
+    /**
+     * @return string
+     */
+    public function getType()
+    {
+        return $this->type;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getRespondTo() {
-		return $this->respondTo;
-	}
+    /**
+     * @param string $type
+     *
+     * @return Message
+     */
+    public function setType($type)
+    {
+        $this->type = $type;
 
-	/**
-	 * @param string $queueName
-	 * @param string $responseId
-	 *
-	 * @return Message
-	 */
-	public function setRespondTo($queueName, $responseId) {
-		$this->respondTo = $queueName;
-		$this->responseId = $responseId;
-		return $this;
-	}
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getResponseId() {
-		return $this->responseId;
-	}
+    /**
+     * @return string
+     */
+    public function getRespondTo()
+    {
+        return $this->respondTo;
+    }
 
-	/**
-	 * @param string $responseId
-	 *
-	 * @return Message
-	 */
-	public function setResponseId($responseId) {
-		$this->responseId = $responseId;
-		return $this;
-	}
+    /**
+     * @param string $queueName
+     * @param string $responseId
+     *
+     * @return Message
+     */
+    public function setRespondTo($queueName, $responseId)
+    {
+        $this->respondTo = $queueName;
+        $this->responseId = $responseId;
 
-	/**
-	 * @return string
-	 */
-	public function getReceiptHandle() {
-		return $this->receiptHandle;
-	}
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getMessageId() {
-		return $this->messageId;
-	}
+    /**
+     * @return string
+     */
+    public function getResponseId()
+    {
+        return $this->responseId;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getAsJson() {
-		$rawBody['type'] = $this->type;
-		$rawBody['success'] = $this->success;
+    /**
+     * @param string $responseId
+     *
+     * @return Message
+     */
+    public function setResponseId($responseId)
+    {
+        $this->responseId = $responseId;
 
-		if(count($this->arguments)) {
-			$rawBody['arguments'] = $this->arguments;
-		}
-		if($this->respondTo) {
-			$rawBody['respond_to'] = $this->respondTo;
-		}
-		if(!empty($this->responseId)) {
-			$rawBody['response_id'] = $this->responseId;
-		}
+        return $this;
+    }
 
-		if(!empty($this->message)) {
-			$rawBody['message'] = $this->message;
-		}
-		if(!empty($this->errorMessage)) {
-			$rawBody['error_message'] = $this->errorMessage;
-		}
-		return json_encode($rawBody, JSON_PRETTY_PRINT);
-	}
+    /**
+     * @return string
+     */
+    public function getReceiptHandle()
+    {
+        return $this->receiptHandle;
+    }
 
-	/**
-	 * Return last JSON error message or null.
-	 * Unfortunately json_last_error_msg only available in PHP>=5.5.
-	 *
-	 * @return null|string Message
-	 */
-	protected function jsonErrorMessage() {
-		$error = json_last_error();
-		if(!$error) {
-			return null;
-		}
+    /**
+     * @return string
+     */
+    public function getMessageId()
+    {
+        return $this->messageId;
+    }
 
-		switch($error) {
-			case JSON_ERROR_NONE:
-				return 'No errors';
-				break;
-			case JSON_ERROR_DEPTH:
-				return 'Maximum stack depth exceeded';
-				break;
-			case JSON_ERROR_STATE_MISMATCH:
-				return 'Underflow or the modes mismatch';
-				break;
-			case JSON_ERROR_CTRL_CHAR:
-				return 'Unexpected control character found';
-				break;
-			case JSON_ERROR_SYNTAX:
-				return 'Syntax error, malformed JSON';
-				break;
-			case JSON_ERROR_UTF8:
-				return 'Malformed UTF-8 characters, possibly incorrectly encoded';
-				break;
-			default:
-				return 'Unknown error';
-				break;
-		}
-	}
+    /**
+     * @return string
+     */
+    public function getAsJson()
+    {
+        $rawBody['type'] = $this->type;
+        $rawBody['success'] = $this->success;
+
+        if (count($this->arguments)) {
+            $rawBody['arguments'] = $this->arguments;
+        }
+        if ($this->respondTo) {
+            $rawBody['respond_to'] = $this->respondTo;
+        }
+        if (!empty($this->responseId)) {
+            $rawBody['response_id'] = $this->responseId;
+        }
+
+        if (!empty($this->message)) {
+            $rawBody['message'] = $this->message;
+        }
+        if (!empty($this->errorMessage)) {
+            $rawBody['error_message'] = $this->errorMessage;
+        }
+
+        return json_encode($rawBody, JSON_PRETTY_PRINT);
+    }
+
+    /**
+     * Return last JSON error message or null.
+     * Unfortunately json_last_error_msg only available in PHP>=5.5.
+     *
+     * @return null|string Message
+     */
+    protected function jsonErrorMessage()
+    {
+        $error = json_last_error();
+        if (!$error) {
+            return null;
+        }
+
+        switch ($error) {
+            case JSON_ERROR_NONE:
+                return 'No errors';
+                break;
+            case JSON_ERROR_DEPTH:
+                return 'Maximum stack depth exceeded';
+                break;
+            case JSON_ERROR_STATE_MISMATCH:
+                return 'Underflow or the modes mismatch';
+                break;
+            case JSON_ERROR_CTRL_CHAR:
+                return 'Unexpected control character found';
+                break;
+            case JSON_ERROR_SYNTAX:
+                return 'Syntax error, malformed JSON';
+                break;
+            case JSON_ERROR_UTF8:
+                return 'Malformed UTF-8 characters, possibly incorrectly encoded';
+                break;
+            default:
+                return 'Unknown error';
+                break;
+        }
+    }
 }
