@@ -1,4 +1,5 @@
 <?php
+
 namespace SilverStripe\BlowGun\Command;
 
 use Monolog\Formatter\LineFormatter;
@@ -11,91 +12,85 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Handle common parameters for AWS commands
+ * Handle common parameters for AWS commands.
  */
-abstract class BaseCommand extends Command {
+abstract class BaseCommand extends Command
+{
+    /**
+     * Name of current profile.
+     *
+     * @var string
+     */
+    protected $profile = null;
 
-	/**
-	 * Name of current profile
-	 *
-	 * @var string
-	 */
-	protected $profile = null;
+    /**
+     * Name of current region.
+     *
+     * @var string
+     */
+    protected $region = null;
 
-	/**
-	 * Name of current region
-	 *
-	 * @var string
-	 */
-	protected $region = null;
+    /**
+     * @var string
+     */
+    protected $roleArn = null;
 
-	/**
-	 * @var string
-	 */
-	protected $roleArn = null;
+    /**
+     * @var \Monolog\Logger
+     */
+    protected $log;
 
-	/**
-	 * @var \Monolog\Logger
-	 */
-	protected $log;
+    /**
+     * Check selected profile and region.
+     *
+     * @param InputInterface $input
+     *
+     * @throws \Exception
+     */
+    public function setCredentials(InputInterface $input)
+    {
+        if ($this->profile && $this->region) {
+            return;
+        }
 
-	/**
-	 * @param InputInterface $input
-	 * @param OutputInterface $output
-	 *
-	 * @return void
-	 */
-	protected function execute(InputInterface $input, OutputInterface $output) {
-		// Load credentials
-		$this->setCredentials($input);
-		$this->log = new Logger('blowgun');
+        if ($input->getOption('profile')) {
+            $this->profile = $input->getOption('profile');
+        } elseif (BlowGunCredentials::defaultProfile()) {
+            $this->profile = BlowGunCredentials::defaultProfile();
+        }
 
-		$streamLogger = new StreamHandler(STDOUT);
-		$streamFormatter = new LineFormatter("%level_name% - %message% %context%\n");
-		$streamLogger->setFormatter($streamFormatter);
-		$this->log->pushHandler($streamLogger );
-	}
+        // Check region
+        $this->region = BlowGunCredentials::defaultRegion($this->profile);
+        if ($input->getOption('region')) {
+            $this->region = $input->getOption('region');
+        }
 
-	/**
-	 * Check selected profile and region
-	 *
-	 * @param InputInterface $input
-	 *
-	 * @throws \Exception
-	 */
-	public function setCredentials(InputInterface $input) {
+        // We always needs a region
+        if (!$this->region) {
+            throw new \RuntimeException('Missing value for <region> and could not be determined from profile');
+        }
+    }
 
-		if($this->profile && $this->region) {
-			return;
-		}
+    /**
+     * @param InputInterface  $input
+     * @param OutputInterface $output
+     */
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        // Load credentials
+        $this->setCredentials($input);
+        $this->log = new Logger('blowgun');
 
-		if($input->getOption('profile')) {
-			$this->profile = $input->getOption('profile');
-		} elseif(BlowGunCredentials::defaultProfile()) {
-			$this->profile = BlowGunCredentials::defaultProfile();
-		}
+        $streamLogger = new StreamHandler(STDOUT);
+        $streamFormatter = new LineFormatter("%level_name% - %message% %context%\n");
+        $streamLogger->setFormatter($streamFormatter);
+        $this->log->pushHandler($streamLogger);
+    }
 
-		// Check region
-		$this->region = BlowGunCredentials::defaultRegion($this->profile);
-		if($input->getOption('region')) {
-			$this->region = $input->getOption('region');
-		}
-
-		// We always needs a region
-		if(!$this->region) {
-			throw new \RuntimeException("Missing value for <region> and could not be determined from profile");
-		}
-
-	}
-
-	/**
-	 *
-	 */
-	protected function configure() {
-		$this->addOption('profile', 'p', InputOption::VALUE_OPTIONAL, 'AWS profile')
-		     ->addOption('region', 'r', InputOption::VALUE_REQUIRED, 'AWS Region')
-		     ->addOption('role-arn', null, InputOption::VALUE_REQUIRED, 'AWS role arn for temporary assuming a role');
-	}
-
-
+    protected function configure()
+    {
+        $this->addOption('profile', 'p', InputOption::VALUE_OPTIONAL, 'AWS profile')
+             ->addOption('region', 'r', InputOption::VALUE_REQUIRED, 'AWS Region')
+             ->addOption('role-arn', null, InputOption::VALUE_REQUIRED, 'AWS role arn for temporary assuming a role');
+    }
 }

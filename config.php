@@ -1,5 +1,5 @@
 <?php
 
-return array(
-	'QueueHandler'=> DI\Object('SilverStripe\\BlowGun\\Service\\SQSHandler')
-);
+return [
+    'QueueHandler' => DI\Object('SilverStripe\\BlowGun\\Service\\SQSHandler'),
+];
