@@ -34,14 +34,16 @@ class Command
     }
 
     /**
+     * @param \Monolog\Logger $logger
+     *
      * @return Status
      */
-    public function run()
+    public function run(\Monolog\Logger $logger)
     {
         $status = new Status();
         $this->process = $this->getProcess();
         try {
-            $this->execProcess($status);
+            $this->execProcess($status, $logger);
         } catch (\Exception $e) {
             $status->failed();
             $status->addError($e->getMessage());
@@ -76,19 +78,23 @@ class Command
     }
 
     /**
-     * @param Status $status
+     * @param Status          $status
+     * @param \Monolog\Logger $logger
      */
-    protected function execProcess(Status $status)
+    protected function execProcess(Status $status, \Monolog\Logger $logger)
     {
         // Run the command and capture data from stdout
         $this->process->start(
-            function ($type, $buffer) use ($status) {
+            function ($type, $buffer) use ($status, $logger) {
                 foreach (explode(PHP_EOL, $buffer) as $line) {
                     $line = trim($line);
                     if (!$line) {
                         continue;
                     }
                     if ('err' === $type) {
+                        if ($logger !== null) {
+                            $logger->addError($line, [$this->message->getQueue(), $this->message->getMessageId()]);
+                        }
                         $status->addError($line);
                         continue;
                     }
@@ -96,6 +102,9 @@ class Command
                     if (stristr($line, '=')) {
                         list($key, $value) = explode('=', $line);
                         $status->setData($key, $value);
+                    }
+                    if ($logger !== null) {
+                        $logger->addNotice($line, [$this->message->getQueue(), $this->message->getMessageId()]);
                     }
                     $status->addNotice($line);
                 }
