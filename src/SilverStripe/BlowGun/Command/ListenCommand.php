@@ -165,15 +165,7 @@ class ListenCommand extends BaseCommand
 
         $this->logNotice(sprintf('Running job %s', $message->getType()), $message);
         $command = new Command($message, $this->scriptDir);
-        $status = $command->run();
-
-        foreach ($status->getErrors() as $error) {
-            $this->logError($error, $message);
-        }
-
-        foreach ($status->getNotices() as $notice) {
-            $this->logNotice($notice, $message);
-        }
+        $status = $command->run($this->log);
 
         if ($message->getRespondTo()) {
             $this->sendResponse($message, $status);
