@@ -2,7 +2,7 @@
 
 namespace SilverStripe\BlowGun\Service;
 
-use Aws\Common\Credentials\Credentials;
+use Aws\Common\Credentials\CredentialsInterface;
 use Aws\Sqs\Exception\SqsException;
 use Aws\Sqs\SqsClient;
 use SilverStripe\BlowGun\Exceptions\MessageLoadingException;
@@ -17,7 +17,7 @@ class SQSHandler
     const QUEUE_DEFAULT_VISIBILITY_TIMEOUT = 30; // 30 seconds
 
     /**
-     * @var Credentials
+     * @var CredentialsInterface
      */
     protected static $credentials;
 
@@ -67,9 +67,9 @@ class SQSHandler
     }
 
     /**
-     * @param Credentials $credentials
+     * @param CredentialsInterface $credentials
      */
-    public static function setCredentials(Credentials $credentials)
+    public static function setCredentials(CredentialsInterface $credentials)
     {
         self::$credentials = $credentials;
     }
