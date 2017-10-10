@@ -3,6 +3,8 @@
 namespace SilverStripe\BlowGun\Command;
 
 use Aws\Sqs\Exception\SqsException;
+use Exception;
+use RuntimeException;
 use SilverStripe\BlowGun\Model\Command;
 use SilverStripe\BlowGun\Model\Message;
 use SilverStripe\BlowGun\Model\Status;
@@ -33,7 +35,7 @@ class ListenCommand extends BaseCommand
     /**
      * @var SQSHandler
      */
-    protected $queueService = null;
+    protected $queueService;
 
     protected function configure()
     {
@@ -74,7 +76,7 @@ class ListenCommand extends BaseCommand
                 } catch (SqsException $e) {
                     $this->log->addError($e->getMessage(), [$queueName]);
                     sleep(30);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->log->addError($e->getMessage(), [$queueName]);
                     sleep(30);
                 }
@@ -101,19 +103,22 @@ class ListenCommand extends BaseCommand
         if (!$dirName) {
             $errorMsg = sprintf("Missing '%s' argument!", $argumentName);
             $this->log->addCritical($errorMsg);
-            throw new \RuntimeException($errorMsg);
+
+            throw new RuntimeException($errorMsg);
         }
 
         if (!file_exists($dirName)) {
             $errorMsg = sprintf("Directory '%s' does not exist!", $dirName);
             $this->log->addCritical($errorMsg);
-            throw new \RuntimeException($errorMsg);
+
+            throw new RuntimeException($errorMsg);
         }
 
         if (!is_dir($dirName)) {
             $errorMsg = sprintf("'%s' isn't a directory!", $argumentName);
             $this->log->addCritical($errorMsg);
-            throw new \RuntimeException($errorMsg);
+
+            throw new RuntimeException($errorMsg);
         }
 
         return $dirName;
@@ -155,7 +160,7 @@ class ListenCommand extends BaseCommand
 
         // At this point there is no action a blowgun worker can do with
         // a status oldMessage, so just log it and delete the oldMessage
-        if ($message->getType() == 'status') {
+        if ($message->getType() === 'status') {
             $this->logNotice($message->getMessage(), $message);
             $this->queueService->delete($message);
             $this->logNotice('Deleted message', $message);

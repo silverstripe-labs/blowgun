@@ -225,7 +225,7 @@ class Message
     /**
      * @param $name
      *
-     * @return string|null
+     * @return null|string
      */
     public function getArgument($name)
     {

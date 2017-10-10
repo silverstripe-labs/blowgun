@@ -2,6 +2,8 @@
 
 namespace SilverStripe\BlowGun\Exceptions;
 
-class MessageLoadingException extends \Exception
+use Exception;
+
+class MessageLoadingException extends Exception
 {
 }

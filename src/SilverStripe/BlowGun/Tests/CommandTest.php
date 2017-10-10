@@ -35,7 +35,7 @@ class CommandTest extends \PHPUnit_Framework_TestCase
         $command = new Command($msg, __DIR__.'/test_scripts');
         $status = $command->run($this->logger);
         $this->assertTrue($status->isSuccessful());
-        $this->assertEquals('Hello world', $status->getNotices()[0]);
+        $this->assertSame('Hello world', $status->getNotices()[0]);
     }
 
     public function testRunProcessScriptNotFound()
@@ -45,9 +45,9 @@ class CommandTest extends \PHPUnit_Framework_TestCase
         $command = new Command($msg, __DIR__.'/test_scripts');
         $status = $command->run($this->logger);
         $this->assertFalse($status->isSuccessful());
-        if (PHP_OS_FAMILY == 'Linux') {
+        if (PHP_OS_FAMILY === 'Linux') {
             $this->assertContains('not found', $status->getErrors()[0]);
-        } elseif (PHP_OS_FAMILY == 'Darwin') {
+        } elseif (PHP_OS_FAMILY === 'Darwin') {
             $this->assertContains('No such file', $status->getErrors()[0]);
         } else {
             $this->markTestSkipped('unknown OS '.PHP_OS);
@@ -61,8 +61,8 @@ class CommandTest extends \PHPUnit_Framework_TestCase
         $command = new Command($msg, __DIR__.'/test_scripts');
         $status = $command->run($this->logger);
         $this->assertFalse($status->isSuccessful());
-        $this->assertEquals('I will fail', $status->getNotices()[0]);
-        $this->assertEquals('command failed', $status->getErrors()[0]);
+        $this->assertSame('I will fail', $status->getNotices()[0]);
+        $this->assertSame('command failed', $status->getErrors()[0]);
     }
 
     public function testRunScriptReturnArguments()
@@ -75,7 +75,7 @@ class CommandTest extends \PHPUnit_Framework_TestCase
         $status = $command->run($this->logger);
         $this->assertTrue($status->isSuccessful());
 
-        $this->assertEquals(['arg1' => 'value1'], $status->getData());
-        $this->assertEquals('arg1=value1', $status->getNotices()[0]);
+        $this->assertSame(['arg1' => 'value1'], $status->getData());
+        $this->assertSame('arg1=value1', $status->getNotices()[0]);
     }
 }

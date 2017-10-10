@@ -2,9 +2,11 @@
 
 namespace SilverStripe\BlowGun\Service;
 
-use Aws\Common\Credentials\CredentialsInterface;
+use Aws\Credentials\CredentialsInterface;
 use Aws\Sqs\Exception\SqsException;
 use Aws\Sqs\SqsClient;
+use Psr\Log\LoggerInterface;
+use RuntimeException;
 use SilverStripe\BlowGun\Exceptions\MessageLoadingException;
 use SilverStripe\BlowGun\Model\Message;
 
@@ -32,38 +34,37 @@ class SQSHandler
     protected $region = '';
 
     /**
-     * @var SqsClient|null
+     * @var null|SqsClient
      */
-    protected $client = null;
+    protected $client;
 
     /**
-     * @var \Psr\Log\LoggerInterface
+     * @var LoggerInterface
      */
     protected $logger;
 
     /**
-     * @param string                   $profile
-     * @param string                   $region
-     * @param \Psr\Log\LoggerInterface $logger
+     * @param string          $profile
+     * @param string          $region
+     * @param LoggerInterface $logger
      */
-    public function __construct($profile, $region, \Psr\Log\LoggerInterface $logger)
+    public function __construct($profile, $region, LoggerInterface $logger)
     {
         $this->logger = $logger;
 
+        $options = [
+            'profile' => $profile,
+        ];
         if (self::$credentials) {
-            $this->client = SqsClient::factory([
-                 'credentials' => self::$credentials,
-                 'region' => $region,
-             ]);
-
-            return;
+            $options = [
+                'credentials' => self::$credentials,
+            ];
         }
-        $this->client = SqsClient::factory(
-            [
-                'profile' => $profile,
-                'region' => $region,
-            ]
-        );
+
+        $this->client = new SqsClient(array_merge($options, [
+            'version' => '2012-11-05',
+            'region' => $region,
+        ]));
     }
 
     /**
@@ -122,7 +123,7 @@ class SQSHandler
             return $queueURL;
         }
 
-        throw new \RuntimeException('Can\t create or find queue '.$queueName);
+        throw new RuntimeException(sprintf('Can\t create or find queue %s', $queueName));
     }
 
     /**
@@ -130,7 +131,7 @@ class SQSHandler
      *
      * @param string $queueName
      *
-     * @return \SilverStripe\BlowGun\Model\Message[]
+     * @return Message[]
      */
     public function fetch($queueName)
     {
@@ -150,6 +151,7 @@ class SQSHandler
         $messages = [];
         foreach ($result['Messages'] as $message) {
             $tmp = new Message($queueName, $this);
+
             try {
                 $tmp->load($message);
             } catch (MessageLoadingException $e) {
@@ -182,7 +184,7 @@ class SQSHandler
     public function delete(Message $message)
     {
         if (!($message->getReceiptHandle())) {
-            throw new \RuntimeException("Can't delete message without ReceiptHandle():\n".$message->getAsJson());
+            throw new RuntimeException(sprintf('Can\'t delete message without ReceiptHandle():%s%s', PHP_EOL, $message->getAsJson()));
         }
         $queueURL = $this->getOrCreateQueueURL($message->getQueue());
         $this->client->deleteMessage(
@@ -225,7 +227,7 @@ class SQSHandler
     public function addVisibilityTimeout(Message $message, $seconds)
     {
         if (!($message->getReceiptHandle())) {
-            throw new \RuntimeException("Can't delete message without ReceiptHandle:\n".$message->getAsJson());
+            throw new RuntimeException(sprintf('Can\'t delete message without ReceiptHandle():%s%s', PHP_EOL, $message->getAsJson()));
         }
         $queueURL = $this->getOrCreateQueueURL($message->getQueue());
         $this->client->changeMessageVisibility(
@@ -252,7 +254,7 @@ class SQSHandler
         );
 
         if (!isset($result['QueueUrl'])) {
-            throw new \RuntimeException('Cant create queue with name '.$queueName);
+            throw new RuntimeException('Cant create queue with name '.$queueName);
         }
         $queueURL = $result['QueueUrl'];
 
@@ -298,7 +300,7 @@ class SQSHandler
             ]
         );
         if (!isset($result['QueueUrl'])) {
-            throw new \RuntimeException("Cant create queue with name 'dead-messages'");
+            throw new RuntimeException("Cant create queue with name 'dead-messages'");
         }
 
         return $result['QueueUrl'];

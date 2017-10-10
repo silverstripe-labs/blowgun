@@ -1,5 +1,6 @@
 <?php
 
+use Aws\Sqs\SqsClient;
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
 use SilverStripe\BlowGun\Service\SQSHandler;
@@ -7,7 +8,7 @@ use SilverStripe\BlowGun\Service\SQSHandler;
 class SQSHandlerTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var \Monolog\Handler\TestHandler
+     * @var TestHandler
      */
     protected $logHandler;
 
@@ -25,7 +26,7 @@ class SQSHandlerTest extends \PHPUnit_Framework_TestCase
     {
         $this->logHandler = new TestHandler();
         $this->logger = new Logger('testLogger', [$this->logHandler]);
-        $this->mockBuilder = $this->getMockBuilder('\Aws\Sqs\SqsClient')->disableOriginalConstructor();
+        $this->mockBuilder = $this->getMockBuilder(SqsClient::class)->disableOriginalConstructor();
     }
 
     public function testGetInstance()
@@ -37,7 +38,7 @@ class SQSHandlerTest extends \PHPUnit_Framework_TestCase
     public function testSetClient()
     {
         $inst = new SQSHandler('profile', 'region', $this->logger);
-        $mock = $this->getMockBuilder('\Aws\Sqs\SqsClient')->disableOriginalConstructor();
+        $mock = $this->getMockBuilder(SqsClient::class)->disableOriginalConstructor();
         $client = $mock->getMock();
         $inst->setClient($client);
     }
@@ -51,6 +52,6 @@ class SQSHandlerTest extends \PHPUnit_Framework_TestCase
             ->willReturn(['QueueUrls' => ['https://some/ulr/queuename1', 'https://some/ulr/queuename2']]);
         $inst->setClient($mock);
         $queues = $inst->listQueues('queue');
-        $this->assertEquals(['queuename1', 'queuename2'], $queues);
+        $this->assertSame(['queuename1', 'queuename2'], $queues);
     }
 }

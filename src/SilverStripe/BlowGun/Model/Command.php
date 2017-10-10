@@ -2,6 +2,8 @@
 
 namespace SilverStripe\BlowGun\Model;
 
+use Exception;
+use Monolog\Logger;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\ProcessBuilder;
 
@@ -34,17 +36,18 @@ class Command
     }
 
     /**
-     * @param \Monolog\Logger $logger
+     * @param Logger $logger
      *
      * @return Status
      */
-    public function run(\Monolog\Logger $logger)
+    public function run(Logger $logger)
     {
         $status = new Status();
         $this->process = $this->getProcess();
+
         try {
             $this->execProcess($status, $logger);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $status->failed();
             $status->addError($e->getMessage());
         }
@@ -78,10 +81,10 @@ class Command
     }
 
     /**
-     * @param Status          $status
-     * @param \Monolog\Logger $logger
+     * @param Status $status
+     * @param Logger $logger
      */
-    protected function execProcess(Status $status, \Monolog\Logger $logger)
+    protected function execProcess(Status $status, Logger $logger)
     {
         // Run the command and capture data from stdout
         $this->process->start(
@@ -96,6 +99,7 @@ class Command
                             $logger->addError($line, [$this->message->getQueue(), $this->message->getMessageId()]);
                         }
                         $status->addError($line);
+
                         continue;
                     }
                     // this capture data that the script outputs
