@@ -2,6 +2,7 @@
 
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
+use SilverStripe\BlowGun\Exceptions\MessageLoadingException;
 use SilverStripe\BlowGun\Model\Message;
 use SilverStripe\BlowGun\Tests\Helpers\MockHandler;
 
@@ -10,12 +11,12 @@ class MessageTest extends PHPUnit_Framework_TestCase
     /**
      * @var MockHandler
      */
-    protected $handler = null;
+    protected $handler;
 
     /**
-     * @var \Monolog\Handler\TestHandler
+     * @var TestHandler
      */
-    protected $logHandler = null;
+    protected $logHandler;
 
     public function setUp()
     {
@@ -36,11 +37,9 @@ class MessageTest extends PHPUnit_Framework_TestCase
         $message->load($rawData);
     }
 
-    /**
-     * @expectedException \SilverStripe\BlowGun\Exceptions\MessageLoadingException
-     */
     public function testMissingReceiptHandle()
     {
+        $this->expectException(MessageLoadingException::class);
         $message = new Message('queueName', $this->handler);
         $rawData = [
             'MessageId' => '0c36a3e2-baf8-4bcf-ad2c-210fc3a0ac75',
@@ -50,11 +49,11 @@ class MessageTest extends PHPUnit_Framework_TestCase
         $message->load($rawData);
     }
 
-    public function testFetchLogsMessageLoadingException()
+    public function testFetchLogsMessageLoadingError()
     {
         $this->handler->fetch('test-queue');
         $records = $this->logHandler->getRecords();
-        $this->assertEquals('Syntax error, malformed JSON', $records[0]['message']);
+        $this->assertSame('Syntax error, malformed JSON', $records[0]['message']);
     }
 
     protected function getJSON($name)

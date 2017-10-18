@@ -2,7 +2,7 @@ machine:
   php:
     version: 5.6.22
 
-## Customize test commands
 test:
   override:
     - ./vendor/bin/phpunit --log-junit $CIRCLE_TEST_REPORTS/junit.xml --coverage-html $CIRCLE_ARTIFACTS/coverage
+    - ./vendor/bin/php-cs-fixer fix -v --dry-run --stop-on-violation --using-cache=no

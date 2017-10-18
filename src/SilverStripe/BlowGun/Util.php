@@ -1,10 +1,11 @@
 <?php
 
-namespace SilverStripe\BlowGun\Credentials;
+namespace SilverStripe\BlowGun;
 
-use Aws\Common\Credentials\Credentials;
+use Aws\Credentials\CredentialProvider;
+use RuntimeException;
 
-class BlowGunCredentials extends Credentials
+class Util
 {
     /**
      * Get the code of the default profile.
@@ -17,7 +18,7 @@ class BlowGunCredentials extends Credentials
             return '';
         }
 
-        return self::getEnvVar(self::ENV_PROFILE) ?: 'default';
+        return self::getEnvVar(CredentialProvider::ENV_PROFILE) ?: 'default';
     }
 
     /**
@@ -25,9 +26,9 @@ class BlowGunCredentials extends Credentials
      *
      * @param string $profile
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
-     * @return string Region id
+     * @return string
      */
     public static function defaultRegion($profile = null)
     {
@@ -43,13 +44,13 @@ class BlowGunCredentials extends Credentials
 
         if (file_exists($credentialFile)) {
             if (!($credentialData = parse_ini_file($credentialFile, true))) {
-                throw new \RuntimeException("Invalid AWS credentials file: {$credentialFile}.");
+                throw new RuntimeException("Invalid AWS credentials file: {$credentialFile}.");
             }
         }
 
         if (file_exists($configFile)) {
             if (!($configData = parse_ini_file($configFile, true))) {
-                throw new \RuntimeException("Invalid AWS credentials file: {$configFile}.");
+                throw new RuntimeException("Invalid AWS credentials file: {$configFile}.");
             }
         }
 
@@ -84,7 +85,7 @@ class BlowGunCredentials extends Credentials
     }
 
     /**
-     * @return mixed|null|string
+     * @return mixed
      */
     private static function getHomeDir()
     {
@@ -105,7 +106,7 @@ class BlowGunCredentials extends Credentials
      *
      * @param string $var Name of the environment variable
      *
-     * @return mixed|null
+     * @return mixed
      */
     private static function getEnvVar($var)
     {

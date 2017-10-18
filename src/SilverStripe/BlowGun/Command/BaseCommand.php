@@ -5,7 +5,8 @@ namespace SilverStripe\BlowGun\Command;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
-use SilverStripe\BlowGun\Credentials\BlowGunCredentials;
+use RuntimeException;
+use SilverStripe\BlowGun\Util;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -21,22 +22,22 @@ abstract class BaseCommand extends Command
      *
      * @var string
      */
-    protected $profile = null;
+    protected $profile;
 
     /**
      * Name of current region.
      *
      * @var string
      */
-    protected $region = null;
+    protected $region;
 
     /**
      * @var string
      */
-    protected $roleArn = null;
+    protected $roleArn;
 
     /**
-     * @var \Monolog\Logger
+     * @var Logger
      */
     protected $log;
 
@@ -45,7 +46,7 @@ abstract class BaseCommand extends Command
      *
      * @param InputInterface $input
      *
-     * @throws \Exception
+     * @throws RuntimeException
      */
     public function setCredentials(InputInterface $input)
     {
@@ -55,19 +56,18 @@ abstract class BaseCommand extends Command
 
         if ($input->getOption('profile')) {
             $this->profile = $input->getOption('profile');
-        } elseif (BlowGunCredentials::defaultProfile()) {
-            $this->profile = BlowGunCredentials::defaultProfile();
+        } elseif (Util::defaultProfile()) {
+            $this->profile = Util::defaultProfile();
         }
 
-        // Check region
-        $this->region = BlowGunCredentials::defaultRegion($this->profile);
         if ($input->getOption('region')) {
             $this->region = $input->getOption('region');
+        } else {
+            $this->region = Util::defaultRegion($this->profile);
         }
 
-        // We always needs a region
         if (!$this->region) {
-            throw new \RuntimeException('Missing value for <region> and could not be determined from profile');
+            throw new RuntimeException('Missing value for <region> and could not be determined from profile');
         }
     }
 
@@ -77,7 +77,6 @@ abstract class BaseCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        // Load credentials
         $this->setCredentials($input);
         $this->log = new Logger('blowgun');
 
