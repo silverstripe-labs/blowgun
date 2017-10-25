@@ -19,7 +19,7 @@ class SQSHandler
     const QUEUE_DEFAULT_VISIBILITY_TIMEOUT = 30; // 30 seconds
 
     /**
-     * @var CredentialsInterface
+     * @var callable|CredentialsInterface
      */
     protected static $credentials;
 
@@ -68,9 +68,9 @@ class SQSHandler
     }
 
     /**
-     * @param CredentialsInterface $credentials
+     * @param callable|CredentialsInterface $credentials
      */
-    public static function setCredentials(CredentialsInterface $credentials)
+    public static function setCredentials($credentials)
     {
         self::$credentials = $credentials;
     }
