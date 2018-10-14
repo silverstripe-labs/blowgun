@@ -86,32 +86,23 @@ class Command
      */
     protected function execProcess(Status $status, Logger $logger)
     {
-        // Run the command and capture data from stdout
+        // Run the command
+
+        $stdout = '';
+        $stderr = '';
         $this->process->start(
-            function ($type, $buffer) use ($status, $logger) {
-                foreach (explode(PHP_EOL, $buffer) as $line) {
-                    $line = trim($line);
-                    if (!$line) {
-                        continue;
-                    }
+            function ($type, $buffer) use ($stderr, $stdout, $logger) {
                     if ('err' === $type) {
                         if ($logger !== null) {
-                            $logger->addError($line, [$this->message->getQueue(), $this->message->getMessageId()]);
+                            $logger->addError($buffer, [$this->message->getQueue(), $this->message->getMessageId()]);
                         }
-                        $status->addError($line);
-
-                        continue;
+                        $stderr .= $buffer;
+                    } else {
+                        if ($logger !== null) {
+                            $logger->addNotice($buffer, [$this->message->getQueue(), $this->message->getMessageId()]);
+                        }
+                        $stdout .=  $buffer;
                     }
-                    // this capture data that the script outputs
-                    if (stristr($line, '=')) {
-                        list($key, $value) = explode('=', $line);
-                        $status->setData($key, $value);
-                    }
-                    if ($logger !== null) {
-                        $logger->addNotice($line, [$this->message->getQueue(), $this->message->getMessageId()]);
-                    }
-                    $status->addNotice($line);
-                }
             }
         );
         // Wait for the command to finish and also increase the visibility
@@ -129,6 +120,14 @@ class Command
                 $previousTime = $now;
             }
             $this->process->checkTimeout();
+        }
+
+        foreach(explode(PHP_EOL, $stdout) as $line) {
+            $status->addNotice($line);
+        }
+
+        foreach(explode(PHP_EOL, $stderr) as $line) {
+            $status->addError($line);
         }
 
         if ($this->process->isSuccessful()) {
