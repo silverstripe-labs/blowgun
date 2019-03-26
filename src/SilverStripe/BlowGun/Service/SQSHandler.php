@@ -145,11 +145,11 @@ class SQSHandler
                 ],
             ]
         );
-        if (!count($result['Messages'])) {
+        if (!$result->get('Messages') || !count($result->get('Messages'))) {
             return [];
         }
         $messages = [];
-        foreach ($result['Messages'] as $message) {
+        foreach ($result->get('Messages') as $message) {
             $tmp = new Message($queueName, $this);
 
             try {
